@@ -10,3 +10,4 @@ path = "src/bin/main.rs"
 
 [dependencies]
 futures-preview = "=0.3.0-alpha.18"
+uuid = { version = "0.7.4", features=["v4"] }
