@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct WorkingDirectory {
     directory_string: String,
 }

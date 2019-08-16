@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct HostName {
     name_string: String,
 }

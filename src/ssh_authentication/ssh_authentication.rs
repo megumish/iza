@@ -20,4 +20,16 @@ impl SSHAuthentication {
             working_directory,
         }
     }
+
+    pub fn user_name(&self) -> UserName {
+        self.user_name.clone()
+    }
+
+    pub fn host_name(&self) -> HostName {
+        self.host_name.clone()
+    }
+
+    pub fn working_directory(&self) -> WorkingDirectory {
+        self.working_directory.clone()
+    }
 }
