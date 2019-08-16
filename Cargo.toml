@@ -9,3 +9,4 @@ name = "iza"
 path = "src/bin/main.rs"
 
 [dependencies]
+futures-preview = "=0.3.0-alpha.18"
