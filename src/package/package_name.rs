@@ -13,3 +13,9 @@ impl ToString for PackageName {
         self.name_string.to_owned()
     }
 }
+
+impl From<String> for PackageName {
+    fn from(name_string: String) -> Self {
+        Self { name_string }
+    }
+}

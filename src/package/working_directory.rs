@@ -13,3 +13,9 @@ impl ToString for WorkingDirectory {
         self.directory_string.to_owned()
     }
 }
+
+impl From<String> for WorkingDirectory {
+    fn from(directory_string: String) -> Self {
+        Self { directory_string }
+    }
+}
