@@ -1,4 +1,4 @@
-use crate::ssh_authentication::*;
+use crate::ssh_connection::*;
 
 pub trait RemoteFileRepository {
     fn push(&self, remote_file: &RemoteFile) -> Result<()>;

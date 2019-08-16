@@ -1,4 +1,4 @@
-use crate::ssh_authentication::*;
+use crate::ssh_connection::*;
 
 pub struct RemoteFile {
     user_name: UserName,

@@ -1,15 +1,15 @@
-use crate::ssh_authentication::*;
+use crate::ssh_connection::*;
 
-pub struct SSHAuthentication {
-    id: SSHAuthenticationID,
+pub struct SSHConnection {
+    id: SSHConnectionID,
     user_name: UserName,
     host_name: HostName,
     working_directory: WorkingDirectory,
 }
 
-impl SSHAuthentication {
+impl SSHConnection {
     pub fn new(user_name: String, host_name: String, working_directory: String) -> Self {
-        let id = SSHAuthenticationID::new();
+        let id = SSHConnectionID::new();
         let user_name = UserName::new(user_name);
         let host_name = HostName::new(host_name);
         let working_directory = WorkingDirectory::new(working_directory);

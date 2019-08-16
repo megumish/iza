@@ -1,2 +1,2 @@
 pub mod package;
-pub mod ssh_authentication;
+pub mod ssh_connection;
