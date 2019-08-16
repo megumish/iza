@@ -1,1 +1,1 @@
-mod package;
+pub mod package;
