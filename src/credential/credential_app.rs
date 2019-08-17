@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use std::convert::TryInto;
 use std::pin::Pin;
 
-pub trait CredentialApp: HasCredentialDistributeService + Sync {
+pub trait CredentialApp: HasCredentialDistributeService + HasCredentialRepository + Sync {
     fn new_credential(
         &'static self,
         kind: String,
@@ -19,6 +19,9 @@ pub trait CredentialApp: HasCredentialDistributeService + Sync {
                     working_directory,
                 )
             })
+            .and_then(move |c| future::ready(Ok((c.get_credential_id(), c.get_credential_kind()))))
+            .and_then(move |(id, kind)| future::ready(Credential::restore(id, kind)))
+            .and_then(move |c| self.credential_repository().push(c))
             .boxed()
     }
 }

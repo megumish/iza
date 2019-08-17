@@ -12,7 +12,7 @@ pub trait CredentialDistributeService: HasSSHConnectionApp + Sync {
         kind: CredentialKind,
         info: HashMap<String, String>,
         working_directory: String,
-    ) -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Box<dyn CredentialAs + Send>>> + Send>> {
         use CredentialKind::*;
         match kind {
             SSHConnection => {

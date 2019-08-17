@@ -1,6 +1,9 @@
+use crate::credential::*;
 use crate::ssh_connection::*;
 use futures::prelude::*;
 use std::pin::Pin;
+
+use crate::ssh_connection::{Error, Result};
 
 pub trait SSHConnectionApp: HasSSHConnectionRepository + HasRemoteFileRepository + Sync {
     fn new_ssh_connection(
@@ -8,13 +11,20 @@ pub trait SSHConnectionApp: HasSSHConnectionRepository + HasRemoteFileRepository
         user_name: String,
         host_name: String,
         working_directory: String,
-    ) -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Box<dyn CredentialAs + Send>>> + Send>> {
         future::ready(Ok(SSHConnection::new(
             user_name,
             host_name,
             working_directory,
         )))
-        .and_then(move |s| future::ready(self.ssh_connection_repository().push(&s)))
+        .and_then(move |s| {
+            future::try_join(self.ssh_connection_repository().push(&s), {
+                let s: Box<dyn CredentialAs + Send> = Box::new(s);
+                future::ready(Ok(s))
+            })
+            .or_else(|e| future::ready(Err(e)))
+            .and_then(|((), s)| future::ready(Ok(s)))
+        })
         .boxed()
     }
 

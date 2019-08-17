@@ -9,6 +9,12 @@ impl SSHConnectionID {
     }
 }
 
+impl ToString for SSHConnectionID {
+    fn to_string(&self) -> String {
+        self.id_string.to_owned()
+    }
+}
+
 impl From<String> for SSHConnectionID {
     fn from(id_string: String) -> Self {
         Self { id_string }
