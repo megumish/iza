@@ -2,7 +2,7 @@ use crate::system_directory::*;
 use futures::prelude::*;
 use std::pin::Pin;
 
-pub trait SystemDirectoryDomain: HasSystemDirectoryMaker + Sync {
+pub trait SystemDirectoryApp: HasSystemDirectoryMaker + Sync {
     fn new_system_directory(
         &'static self,
         working_directory: String,
@@ -20,3 +20,11 @@ pub trait SystemDirectoryDomain: HasSystemDirectoryMaker + Sync {
             .boxed()
     }
 }
+
+pub trait HasSystemDirectoryApp {
+    type App: SystemDirectoryApp;
+
+    fn system_directory_app(&self) -> Self::App;
+}
+
+impl<T> SystemDirectoryApp for T where T: HasSystemDirectoryMaker + Sync {}
