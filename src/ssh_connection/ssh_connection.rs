@@ -1,3 +1,4 @@
+use crate::credential::*;
 use crate::ssh_connection::*;
 
 pub struct SSHConnection {
@@ -31,5 +32,15 @@ impl SSHConnection {
 
     pub fn working_directory(&self) -> WorkingDirectory {
         self.working_directory.clone()
+    }
+}
+
+impl CredentialAs for SSHConnection {
+    fn get_credential_id(&self) -> String {
+        self.id.to_string()
+    }
+
+    fn get_credential_kind(&self) -> String {
+        "SSHConnection".to_owned()
     }
 }
