@@ -24,4 +24,13 @@ pub trait CredentialApp: HasCredentialDistributeService + HasCredentialRepositor
             .and_then(move |c| self.credential_repository().push(c))
             .boxed()
     }
+
+    fn credentials(
+        &'static self,
+        working_directory: String,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<Credential>>> + Send>> {
+        self.credential_repository()
+            .credentials(&working_directory)
+            .boxed()
+    }
 }

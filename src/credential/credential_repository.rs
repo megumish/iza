@@ -4,6 +4,11 @@ use std::pin::Pin;
 
 pub trait CredentialRepository {
     fn push(&self, credential: Credential) -> Pin<Box<dyn Future<Output = Result<()>> + Send>>;
+
+    fn credentials(
+        &self,
+        working_directory: &str,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<Credential>>> + Send>>;
 }
 
 pub trait HasCredentialRepository {
