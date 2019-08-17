@@ -1,6 +1,7 @@
 use crate::credential::*;
 use std::convert::TryFrom;
 
+#[derive(Clone)]
 pub enum CredentialKind {
     SSHConnection,
 }

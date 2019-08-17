@@ -12,4 +12,12 @@ impl Credential {
         let kind: CredentialKind = kind.try_into()?;
         Ok(Self { id, kind })
     }
+
+    pub fn get_id(&self) -> CredentialID {
+        self.id.clone()
+    }
+
+    pub fn get_kind(&self) -> CredentialKind {
+        self.kind.clone()
+    }
 }

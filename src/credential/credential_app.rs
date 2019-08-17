@@ -33,4 +33,33 @@ pub trait CredentialApp: HasCredentialDistributeService + HasCredentialRepositor
             .credentials(&working_directory)
             .boxed()
     }
+
+    fn credentials_of_kind(
+        &'static self,
+        kind: String,
+        working_directory: String,
+    ) -> Pin<Box<dyn Future<Output = Result<Vec<Credential>>> + Send>> {
+        unimplemented!()
+    }
+
+    fn deploy_object(
+        &'static self,
+        id: String,
+        local_path: String,
+        remote_path: String,
+        working_directory: String,
+    ) -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
+        self.credential_repository()
+            .credential_of_id(&id.into(), &working_directory)
+            .and_then(move |c| {
+                self.credential_distribute_service().deploy_object(
+                    c.get_kind(),
+                    c.get_id(),
+                    local_path,
+                    remote_path,
+                    working_directory,
+                )
+            })
+            .boxed()
+    }
 }

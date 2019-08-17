@@ -52,6 +52,27 @@ pub trait CredentialDistributeService: HasSSHConnectionApp + Sync {
             }
         }
     }
+
+    fn deploy_object(
+        &'static self,
+        kind: CredentialKind,
+        id: CredentialID,
+        local_path: String,
+        remote_path: String,
+        working_directory: String,
+    ) -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
+        use CredentialKind::*;
+        match kind {
+            SSHConnection => self
+                .ssh_connection_app()
+                .scp(id.to_string(), local_path, remote_path, working_directory)
+                .map_err(|e| {
+                    eprintln!("{}", e);
+                    Error::OtherAppError
+                })
+                .boxed(),
+        }
+    }
 }
 
 pub trait HasCredentialDistributeService {

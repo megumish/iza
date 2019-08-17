@@ -43,11 +43,15 @@ pub trait SSHConnectionApp: HasSSHConnectionRepository + HasRemoteFileRepository
         &'static self,
         ssh_connection_id: String,
         working_directory: String,
-    ) -> Pin<Box<dyn Future<Output = Result<SSHConnection>>>> {
+    ) -> Pin<Box<dyn Future<Output = Result<Box<dyn CredentialAs + Send>>> + Send>> {
         future::ready(
             self.ssh_connection_repository()
                 .ssh_connection_of_id(&ssh_connection_id.into(), &working_directory.into()),
         )
+        .and_then(|s| {
+            let s: Box<dyn CredentialAs + Send> = Box::new(s);
+            future::ready(Ok(s))
+        })
         .boxed()
     }
 
@@ -70,7 +74,7 @@ pub trait SSHConnectionApp: HasSSHConnectionRepository + HasRemoteFileRepository
         local_path: String,
         remote_path: String,
         working_directory: String,
-    ) -> Pin<Box<dyn Future<Output = Result<()>>>> {
+    ) -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
         future::ready(
             self.ssh_connection_repository()
                 .ssh_connection_of_id(&ssh_connection_id.into(), &working_directory.into()),

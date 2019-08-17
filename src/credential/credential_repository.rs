@@ -9,6 +9,12 @@ pub trait CredentialRepository {
         &self,
         working_directory: &str,
     ) -> Pin<Box<dyn Future<Output = Result<Vec<Credential>>> + Send>>;
+
+    fn credential_of_id(
+        &self,
+        id: &CredentialID,
+        working_directory: &str,
+    ) -> Pin<Box<dyn Future<Output = Result<Credential>> + Send>>;
 }
 
 pub trait HasCredentialRepository {
