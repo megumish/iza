@@ -6,6 +6,7 @@ pub trait ObjectInfoRepository {
     fn push(
         &self,
         object_info: &ObjectInfo,
+        working_directory: &str,
     ) -> Pin<Box<dyn Future<Output = Result<ObjectInfo>> + Send>>;
 }
 
