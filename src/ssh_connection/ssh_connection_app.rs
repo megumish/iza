@@ -8,7 +8,7 @@ pub trait SSHConnectionApp: HasSSHConnectionRepository + HasRemoteFileRepository
         user_name: String,
         host_name: String,
         working_directory: String,
-    ) -> Pin<Box<dyn Future<Output = Result<()>>>> {
+    ) -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
         future::ready(Ok(SSHConnection::new(
             user_name,
             host_name,
