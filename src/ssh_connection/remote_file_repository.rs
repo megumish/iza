@@ -25,7 +25,7 @@ impl RemoteFileRepository for RemoteFileRepositoryDefaultImpl {
             }
         }
         info!(
-            "ssh {} {}@{}:{}",
+            "scp -C -v -q {} {}@{}:{}",
             &real_local_path,
             &user.to_string(),
             &host.to_string(),
@@ -33,6 +33,9 @@ impl RemoteFileRepository for RemoteFileRepositoryDefaultImpl {
         );
 
         let output = Command::new("scp")
+            .arg("-C")
+            .arg("-v")
+            .arg("-q")
             .arg(real_local_path)
             .arg(format!(
                 "{}@{}:{}",
@@ -45,6 +48,11 @@ impl RemoteFileRepository for RemoteFileRepositoryDefaultImpl {
         info!(
             "[*] result output: {}",
             std::str::from_utf8(&output.stdout)?
+        );
+
+        info!(
+            "[*] result error output: {}",
+            std::str::from_utf8(&output.stderr)?
         );
         Ok(())
     }

@@ -112,7 +112,7 @@ impl SSHConnectionRepository for SSHConnectionRepositoryDefaultImpl {
             ssh_connections
                 .iter()
                 .map(|p| {
-                    SSHConnection::new(
+                    SSHConnection::restore(
                         p.id_of_yaml_ssh_connection(),
                         p.user_of_yaml_ssh_connection(),
                         p.host_of_yaml_ssh_connection(),
