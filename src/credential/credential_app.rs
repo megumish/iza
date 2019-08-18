@@ -11,6 +11,7 @@ pub trait CredentialApp: HasCredentialDistributeService + HasCredentialRepositor
         info: HashMap<String, String>,
         working_directory: String,
     ) -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
+        let working_directory2 = working_directory.clone();
         future::ready(kind.try_into())
             .and_then(move |k| {
                 self.credential_distribute_service().new_credential_of_kind(
@@ -21,7 +22,7 @@ pub trait CredentialApp: HasCredentialDistributeService + HasCredentialRepositor
             })
             .and_then(move |c| future::ready(Ok((c.get_credential_id(), c.get_credential_kind()))))
             .and_then(move |(id, kind)| future::ready(Credential::restore(id, kind)))
-            .and_then(move |c| self.credential_repository().push(c))
+            .and_then(move |c| self.credential_repository().push(&c, &working_directory2))
             .boxed()
     }
 
@@ -53,8 +54,8 @@ pub trait CredentialApp: HasCredentialDistributeService + HasCredentialRepositor
             .credential_of_id(&id.into(), &working_directory)
             .and_then(move |c| {
                 self.credential_distribute_service().deploy_object(
-                    c.get_kind(),
-                    c.get_id(),
+                    c.kind_of_credential(),
+                    c.id_of_credential(),
                     local_path,
                     remote_path,
                     working_directory,

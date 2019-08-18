@@ -5,6 +5,7 @@ extern crate log;
 
 use futures::{executor, prelude::*};
 use iza::{package::*, system_directory::*};
+use std::collections::HashMap;
 use std::env;
 
 use std::result::Result;
@@ -22,11 +23,19 @@ fn main() -> Result<(), failure::Error> {
         )
         (@subcommand package =>
             (about: "package manager")
-            (version: "0.1.0")
-            (author: "Keishi Kawada <megumish@exploitouri.st>")
             (@subcommand new =>
                 (about: "create new package")
                 (@arg NAME: +required "new package name")
+            )
+        )
+        (@subcommand credential =>
+            (about: "credential manager")
+            (@subcommand ssh =>
+                (@subcommand new =>
+                    (about: "ssh connection")
+                    (@arg USER: +required "ssh user name")
+                    (@arg HOST: +required "ssh host name")
+                )
             )
         )
     )
@@ -81,6 +90,28 @@ fn main() -> Result<(), failure::Error> {
             packages.into_iter().for_each(|p| {
                 println!("{}", p.name_of_package());
             });
+        }
+    }
+
+    if let Some(matches) = matches.subcommand_matches("credential") {
+        if let Some(matches) = matches.subcommand_matches("ssh") {
+            if let Some(matches) = matches.subcommand_matches("new") {
+                let user = matches.value_of("USER").unwrap();
+                let host = matches.value_of("HOST").unwrap();
+
+                let mut info = HashMap::new();
+                info.insert("user", user);
+                info.insert("host", host);
+
+                // let new_ssh_future = iza::SUITE.credential_app().new_credential(
+                //     "SSHConnection".to_owned(),
+                //     info,
+                //     current_dir.to_owned(),
+                // );
+
+                // let mut executor = executor::ThreadPool::new()?;
+                // executor.run(new_ssh_future)?;
+            }
         }
     }
 

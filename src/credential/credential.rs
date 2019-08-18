@@ -1,6 +1,7 @@
 use crate::credential::*;
 use std::convert::TryInto;
 
+#[derive(Clone)]
 pub struct Credential {
     id: CredentialID,
     kind: CredentialKind,
@@ -13,11 +14,11 @@ impl Credential {
         Ok(Self { id, kind })
     }
 
-    pub fn get_id(&self) -> CredentialID {
+    pub fn id_of_credential(&self) -> CredentialID {
         self.id.clone()
     }
 
-    pub fn get_kind(&self) -> CredentialKind {
+    pub fn kind_of_credential(&self) -> CredentialKind {
         self.kind.clone()
     }
 }

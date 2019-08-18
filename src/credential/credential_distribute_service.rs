@@ -36,7 +36,10 @@ pub trait CredentialDistributeService: HasSSHConnectionApp + Sync {
                 }
 
                 if !not_enough_info.is_empty() {
-                    return future::ready(Err(Error::NotEnoughInfo(not_enough_info))).boxed();
+                    return future::ready(Err(Error::NotEnoughInfo(NotEnoughInfo::new(
+                        not_enough_info,
+                    ))))
+                    .boxed();
                 }
                 self.ssh_connection_app()
                     .new_ssh_connection(
