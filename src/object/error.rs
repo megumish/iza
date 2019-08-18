@@ -10,6 +10,8 @@ pub enum Error {
     AlreadyExistObjectInfo,
     #[fail(display = "not found object")]
     NotFoundObject,
+    #[fail(display = "not found object info")]
+    NotFoundObjectInfo,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

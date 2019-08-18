@@ -10,6 +10,12 @@ impl ObjectID {
     }
 }
 
+impl From<String> for ObjectID {
+    fn from(id_string: String) -> Self {
+        Self { id_string }
+    }
+}
+
 impl ToString for ObjectID {
     fn to_string(&self) -> String {
         self.id_string.clone()

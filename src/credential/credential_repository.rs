@@ -90,10 +90,45 @@ impl CredentialRepository for CredentialRepositoryDefaultImpl {
 
     fn credential_of_id(
         &self,
-        id: &CredentialID,
+        credential_id: &CredentialID,
         working_directory: &str,
     ) -> Pin<Box<dyn Future<Output = Result<Credential>> + Send>> {
-        unimplemented!()
+        let credential_id = credential_id.clone();
+        let working_directory = working_directory.to_owned();
+        future::lazy(move |_| {
+            let working_directory = working_directory.to_string();
+
+            let credentials_path_buf = {
+                let mut p = path::Path::new(&working_directory).to_path_buf();
+                p.push(".iza");
+                p.push("credential");
+                p.push("credentials");
+                p
+            };
+
+            {
+                let mut input_data = Vec::new();
+                let mut credentials_file = fs::File::open(&credentials_path_buf)?;
+                credentials_file.read_to_end(&mut input_data)?;
+                let credentials: Vec<YamlCredential> = if input_data.is_empty() {
+                    Vec::new()
+                } else {
+                    yaml::from_slice(&input_data)?
+                };
+                let target_credential_id = credential_id.to_string();
+                match credentials
+                    .iter()
+                    .find(|p| &p.id_of_yaml_credential() == &target_credential_id)
+                {
+                    Some(p) => Ok(Credential::restore(
+                        p.id_of_yaml_credential(),
+                        p.kind_of_yaml_credential(),
+                    )?),
+                    None => Err(Error::NotFoundCredential),
+                }
+            }
+        })
+        .boxed()
     }
 }
 

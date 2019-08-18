@@ -84,7 +84,43 @@ impl ObjectRepository for ObjectRepositoryDefaultImpl {
         package_id: &PackageID,
         working_directory: &str,
     ) -> Pin<Box<dyn Future<Output = Result<Vec<Object>>> + Send>> {
-        unimplemented!()
+        let package_id = package_id.clone();
+        let working_directory = working_directory.to_owned();
+        future::lazy(move |_| {
+            let working_directory = working_directory.to_string();
+
+            let objects_path_buf = {
+                let mut p = path::Path::new(&working_directory).to_path_buf();
+                p.push(".iza");
+                p.push("object");
+                p.push("objects");
+                p
+            };
+
+            {
+                let mut input_data = Vec::new();
+                let mut objects_file = fs::File::open(&objects_path_buf)?;
+                objects_file.read_to_end(&mut input_data)?;
+                let objects: Vec<YamlObject> = if input_data.is_empty() {
+                    Vec::new()
+                } else {
+                    yaml::from_slice(&input_data)?
+                };
+                let target_package_id = package_id.to_string();
+                objects
+                    .iter()
+                    .filter(|p| &p.id_of_yaml_object() != &target_package_id)
+                    .map(|p| {
+                        Ok(Object::restore(
+                            p.id_of_yaml_object(),
+                            p.object_info_id_of_yaml_object(),
+                            p.package_id_of_yaml_object(),
+                        ))
+                    })
+                    .collect()
+            }
+        })
+        .boxed()
     }
 }
 

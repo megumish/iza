@@ -23,6 +23,25 @@ impl ObjectInfo {
         }
     }
 
+    pub fn restore(
+        id: String,
+        local_path: String,
+        remote_path: String,
+        credential_id: String,
+    ) -> Self {
+        let id = id.into();
+        let local_path: LocalPath = local_path.into();
+        let remote_path: RemotePath = remote_path.into();
+        let credential_id: CredentialID = credential_id.into();
+
+        Self {
+            id,
+            local_path,
+            remote_path,
+            credential_id,
+        }
+    }
+
     pub fn id_of_object_info(&self) -> ObjectInfoID {
         self.id.clone()
     }

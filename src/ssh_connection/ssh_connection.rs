@@ -20,6 +20,17 @@ impl SSHConnection {
         }
     }
 
+    pub fn restore(id: String, user_name: String, host_name: String) -> Self {
+        let id = id.into();
+        let user_name = UserName::new(user_name);
+        let host_name = HostName::new(host_name);
+        Self {
+            id,
+            user_name,
+            host_name,
+        }
+    }
+
     pub fn id_of_ssh_connection(&self) -> SSHConnectionID {
         self.id.clone()
     }

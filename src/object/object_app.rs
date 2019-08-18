@@ -29,6 +29,16 @@ pub trait ObjectApp: HasObjectInfoRepository + HasObjectRepository + Sync {
             .objects_of_package_id(&package_id.into(), &working_directory)
             .boxed()
     }
+
+    fn object_info_of_id(
+        &'static self,
+        object_info_id: String,
+        working_directory: String,
+    ) -> Pin<Box<dyn Future<Output = Result<ObjectInfo>> + Send>> {
+        self.object_info_repository()
+            .object_info_of_id(&object_info_id.into(), &working_directory)
+            .boxed()
+    }
 }
 
 pub trait HasObjectApp {

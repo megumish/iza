@@ -24,6 +24,13 @@ impl RemoteFileRepository for RemoteFileRepositoryDefaultImpl {
                 Some(s) => real_local_path = s.to_owned(),
             }
         }
+        info!(
+            "ssh {} {}@{}:{}",
+            &real_local_path,
+            &user.to_string(),
+            &host.to_string(),
+            &remote_path.to_string()
+        );
 
         let output = Command::new("scp")
             .arg(real_local_path)

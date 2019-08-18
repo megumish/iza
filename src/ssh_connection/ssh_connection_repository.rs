@@ -127,7 +127,38 @@ impl SSHConnectionRepository for SSHConnectionRepositoryDefaultImpl {
         ssh_connection_id: &SSHConnectionID,
         working_directory: &WorkingDirectory,
     ) -> Result<SSHConnection> {
-        unimplemented!()
+        let working_directory = working_directory.to_string();
+
+        let ssh_connections_path_buf = {
+            let mut p = path::Path::new(&working_directory).to_path_buf();
+            p.push(".iza");
+            p.push("credential");
+            p.push("ssh_connection");
+            p
+        };
+
+        {
+            let mut input_data = Vec::new();
+            let mut ssh_connections_file = fs::File::open(&ssh_connections_path_buf)?;
+            ssh_connections_file.read_to_end(&mut input_data)?;
+            let ssh_connections: Vec<YamlSSHConnection> = if input_data.is_empty() {
+                Vec::new()
+            } else {
+                yaml::from_slice(&input_data)?
+            };
+            let target_ssh_connection_id = ssh_connection_id.to_string();
+            match ssh_connections
+                .iter()
+                .find(|p| &p.id_of_yaml_ssh_connection() == &target_ssh_connection_id)
+            {
+                Some(p) => Ok(SSHConnection::restore(
+                    p.id_of_yaml_ssh_connection(),
+                    p.user_of_yaml_ssh_connection(),
+                    p.host_of_yaml_ssh_connection(),
+                )),
+                None => Err(Error::NotFoundSSHConnection),
+            }
+        }
     }
 }
 

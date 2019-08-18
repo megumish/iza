@@ -48,6 +48,9 @@ fn main() -> Result<(), failure::Error> {
                 (@arg CREDENTIAL_ID: +required "id of credential to deploy")
             )
         )
+        (@subcommand deploy =>
+            (about: "iza deploy")
+        )
     )
     .get_matches();
 
@@ -165,8 +168,99 @@ fn main() -> Result<(), failure::Error> {
 
             let mut executor = executor::ThreadPool::new()?;
             executor.run(new_object_future)?;
+        } else {
+            let objects_future = iza::SUITE
+                .package_app()
+                .current_package(current_dir.to_owned())
+                .map_err(Into::<failure::Error>::into)
+                .and_then(move |p| {
+                    future::try_join(
+                        future::ready(Ok(p.clone())),
+                        iza::SUITE
+                            .object_app()
+                            .objects_of_package_id(
+                                p.name_of_package().to_string(),
+                                current_dir.to_owned(),
+                            )
+                            .map_err(Into::<failure::Error>::into),
+                    )
+                })
+                .and_then(move |(p, os)| {
+                    future::try_join3(
+                        future::ready(Ok(p.clone())),
+                        future::ready(Ok(os.clone())),
+                        future::try_join_all(os.iter().map(|o| {
+                            iza::SUITE
+                                .object_app()
+                                .object_info_of_id(
+                                    o.object_info_id_of_object().to_string(),
+                                    current_dir.to_owned(),
+                                )
+                                .map_err(Into::<failure::Error>::into)
+                        })),
+                    )
+                });
+
+            let mut executor = executor::ThreadPool::new()?;
+
+            let (package, objects, objects_info) = executor.run(objects_future)?;
+            println!(
+                "Package <{}> Object List",
+                package.name_of_package().to_string()
+            );
+            objects_info.iter().zip(objects.iter()).for_each(|(i, o)| {
+                println!("id: {}", o.id_of_object().to_string());
+                println!("object_info_id: {}", i.id_of_object_info().to_string());
+                println!("local_path: {}", i.local_path_of_object_info().to_string());
+                println!(
+                    "remote_path: {}",
+                    i.remote_path_of_object_info().to_string()
+                );
+                println!(
+                    "credential_id: {}",
+                    i.credential_id_of_object_info().to_string()
+                );
+                println!("");
+            });
         }
     }
 
+    if matches.subcommand_matches("deploy").is_some() {
+        let deploy_future = iza::SUITE
+            .package_app()
+            .current_package(current_dir.to_owned())
+            .map_err(Into::<failure::Error>::into)
+            .and_then(move |p| {
+                iza::SUITE
+                    .object_app()
+                    .objects_of_package_id(p.name_of_package().to_string(), current_dir.to_owned())
+                    .map_err(Into::<failure::Error>::into)
+            })
+            .and_then(move |os| {
+                future::try_join_all(os.iter().map(|o| {
+                    iza::SUITE
+                        .object_app()
+                        .object_info_of_id(
+                            o.object_info_id_of_object().to_string(),
+                            current_dir.to_owned(),
+                        )
+                        .map_err(Into::<failure::Error>::into)
+                        .and_then(move |i| {
+                            iza::SUITE
+                                .credential_app()
+                                .deploy_object(
+                                    i.credential_id_of_object_info().to_string(),
+                                    i.local_path_of_object_info().to_string(),
+                                    i.remote_path_of_object_info().to_string(),
+                                    current_dir.to_owned(),
+                                )
+                                .map_err(Into::<failure::Error>::into)
+                        })
+                }))
+            })
+            .and_then(|_| future::ready(Ok(())));
+        let mut executor = executor::ThreadPool::new()?;
+        executor.run(deploy_future)?;
+    }
     Ok(())
 }
