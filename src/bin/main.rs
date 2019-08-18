@@ -20,6 +20,15 @@ fn main() -> Result<(), failure::Error> {
             (version: "0.1.0")
             (author: "Keishi Kawada <megumish@exploitouri.st>")
         )
+        (@subcommand package =>
+            (about: "package manager")
+            (version: "0.1.0")
+            (author: "Keishi Kawada <megumish@exploitouri.st>")
+            (@subcommand new =>
+                (about: "create new package")
+                (@arg NAME: +required "new package name")
+            )
+        )
     )
     .get_matches();
 
@@ -30,6 +39,7 @@ fn main() -> Result<(), failure::Error> {
         .to_str()
         .expect("Current Directory Name is Invalid")
         .to_owned();
+
     if matches.subcommand_matches("init").is_some() {
         let init_future = iza::SUITE
             .system_directory_app()
@@ -48,10 +58,31 @@ fn main() -> Result<(), failure::Error> {
                     .map_err(Into::<failure::Error>::into)
             });
         let mut executor = executor::ThreadPool::new()?;
-        match executor.run(init_future) {
-            Err(err) => warn!("[-] Error: {:#?}", err),
-            Ok(()) => info!("[+] Success Initialization"),
+        executor.run(init_future)?;
+    }
+
+    if let Some(matches) = matches.subcommand_matches("package") {
+        if let Some(matches) = matches.subcommand_matches("new") {
+            let name = matches.value_of("NAME").unwrap();
+
+            let new_package_future = iza::SUITE
+                .package_app()
+                .new_package(name.to_owned(), current_dir.to_owned());
+
+            let mut executor = executor::ThreadPool::new()?;
+            executor.run(new_package_future)?;
+        } else {
+            let packages_future = iza::SUITE.package_app().packages(current_dir.to_owned());
+
+            let mut executor = executor::ThreadPool::new()?;
+
+            let packages = executor.run(packages_future)?;
+            println!("Package List");
+            packages.into_iter().for_each(|p| {
+                println!("{}", p.name_of_package());
+            });
         }
     }
+
     Ok(())
 }
