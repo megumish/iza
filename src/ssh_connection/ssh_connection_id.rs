@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct SSHConnectionID {
     id_string: String,
 }

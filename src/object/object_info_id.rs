@@ -9,3 +9,15 @@ impl ObjectInfoID {
         Self { id_string }
     }
 }
+
+impl From<String> for ObjectInfoID {
+    fn from(id_string: String) -> Self {
+        Self { id_string }
+    }
+}
+
+impl ToString for ObjectInfoID {
+    fn to_string(&self) -> String {
+        self.id_string.clone()
+    }
+}

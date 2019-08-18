@@ -8,8 +8,13 @@ pub trait PackageApp: HasPackageRepository + Sync {
         name: String,
         working_directory: String,
     ) -> Pin<Box<dyn Future<Output = Result<()>>>> {
-        future::ready(Ok(Package::new(name, working_directory)))
-            .and_then(move |p| future::ready(self.package_repository().push(&p)))
+        future::ready(Ok(Package::new(name)))
+            .and_then(move |p| {
+                future::ready(
+                    self.package_repository()
+                        .push(&p, &working_directory.into()),
+                )
+            })
             .boxed()
     }
 
@@ -40,11 +45,17 @@ pub trait PackageApp: HasPackageRepository + Sync {
         name: String,
         working_directory: String,
     ) -> Pin<Box<dyn Future<Output = Result<()>>>> {
+        let working_directory2 = working_directory.clone();
         future::ready(
             self.package_repository()
                 .package_of_name(&name.into(), &working_directory.into()),
         )
-        .and_then(move |p| future::ready(self.package_repository().set_current_package(&p)))
+        .and_then(move |p| {
+            future::ready(
+                self.package_repository()
+                    .set_current_package(&p, &working_directory2.into()),
+            )
+        })
         .boxed()
     }
 }
