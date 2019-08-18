@@ -1,5 +1,6 @@
 use crate::object::*;
 
+#[derive(Clone)]
 pub struct ObjectInfo {
     id: ObjectInfoID,
     local_path: LocalPath,
@@ -22,7 +23,19 @@ impl ObjectInfo {
         }
     }
 
-    pub fn get_id(&self) -> ObjectInfoID {
+    pub fn id_of_object_info(&self) -> ObjectInfoID {
         self.id.clone()
+    }
+
+    pub fn local_path_of_object_info(&self) -> LocalPath {
+        self.local_path.clone()
+    }
+
+    pub fn remote_path_of_object_info(&self) -> RemotePath {
+        self.remote_path.clone()
+    }
+
+    pub fn credential_id_of_object_info(&self) -> CredentialID {
+        self.credential_id.clone()
     }
 }

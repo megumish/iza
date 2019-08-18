@@ -4,7 +4,7 @@ extern crate clap;
 extern crate log;
 
 use futures::{executor, prelude::*};
-use iza::{credential::*, package::*, ssh_connection::*, system_directory::*};
+use iza::{credential::*, object::*, package::*, ssh_connection::*, system_directory::*};
 use std::collections::HashMap;
 use std::env;
 
@@ -42,6 +42,7 @@ fn main() -> Result<(), failure::Error> {
             (about: "object manager")
             (@subcommand new =>
                 (about: "create new package")
+                (setting: clap::AppSettings::ArgRequiredElseHelp)
                 (@arg LOCAL_PATH: +required "new object local path")
                 (@arg REMOTE_PATH: +required "new object remote path")
                 (@arg CREDENTIAL_ID: +required "id of credential to deploy")
@@ -136,6 +137,34 @@ fn main() -> Result<(), failure::Error> {
                     println!("");
                 });
             }
+        }
+    }
+
+    if let Some(matches) = matches.subcommand_matches("object") {
+        if let Some(matches) = matches.subcommand_matches("new") {
+            let local_path = matches.value_of("LOCAL_PATH").unwrap();
+            let remote_path = matches.value_of("REMOTE_PATH").unwrap();
+            let credential_id = matches.value_of("CREDENTIAL_ID").unwrap();
+
+            let new_object_future = iza::SUITE
+                .package_app()
+                .current_package(current_dir.to_owned())
+                .map_err(Into::<failure::Error>::into)
+                .and_then(move |p| {
+                    iza::SUITE
+                        .object_app()
+                        .new_object(
+                            local_path.to_owned(),
+                            remote_path.to_owned(),
+                            credential_id.to_owned(),
+                            p.name_of_package().to_string(),
+                            current_dir.to_owned(),
+                        )
+                        .map_err(Into::<failure::Error>::into)
+                });
+
+            let mut executor = executor::ThreadPool::new()?;
+            executor.run(new_object_future)?;
         }
     }
 

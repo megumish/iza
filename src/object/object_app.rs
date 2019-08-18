@@ -14,7 +14,7 @@ pub trait ObjectApp: HasObjectInfoRepository + HasObjectRepository + Sync {
         let working_directory2 = working_directory.clone();
         future::ready(Ok(ObjectInfo::new(local_path, remote_path, credential_id)))
             .and_then(move |o| self.object_info_repository().push(&o, &working_directory))
-            .and_then(move |o| future::ready(Ok(Object::new(o.get_id(), package_id))))
+            .and_then(move |o| future::ready(Ok(Object::new(o.id_of_object_info(), package_id))))
             .and_then(move |o| self.object_repository().push(&o, &working_directory2))
             .and_then(|_| future::ready(Ok(())))
             .boxed()
@@ -30,3 +30,11 @@ pub trait ObjectApp: HasObjectInfoRepository + HasObjectRepository + Sync {
             .boxed()
     }
 }
+
+pub trait HasObjectApp {
+    type App: ObjectApp;
+
+    fn object_app(&self) -> &Self::App;
+}
+
+impl<T> ObjectApp for T where T: HasObjectInfoRepository + HasObjectRepository + Sync {}

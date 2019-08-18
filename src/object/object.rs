@@ -1,5 +1,6 @@
 use crate::object::*;
 
+#[derive(Clone)]
 pub struct Object {
     id: ObjectID,
     package_id: PackageID,
@@ -16,5 +17,17 @@ impl Object {
             package_id,
             object_info_id,
         }
+    }
+
+    pub fn id_of_object(&self) -> String {
+        self.id.to_string()
+    }
+
+    pub fn package_id_of_object(&self) -> String {
+        self.package_id.to_string()
+    }
+
+    pub fn object_info_id_of_object(&self) -> String {
+        self.object_info_id.to_string()
     }
 }

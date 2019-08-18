@@ -1,10 +1,12 @@
 mod error;
 mod object;
 mod object_app;
+mod object_app_impl;
 
 pub use self::error::*;
 pub use self::object::*;
 pub use self::object_app::*;
+pub use self::object_app_impl::*;
 
 mod credential_id;
 mod local_path;
