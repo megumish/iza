@@ -8,3 +8,9 @@ impl HostName {
         Self { name_string }
     }
 }
+
+impl ToString for HostName {
+    fn to_string(&self) -> String {
+        self.name_string.clone()
+    }
+}

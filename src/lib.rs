@@ -19,11 +19,12 @@ lazy_static! {
     pub static ref SUITE: AppSuite = AppSuite::new();
 }
 
-use crate::{package::*, system_directory::*};
+use crate::{credential::*, package::*, system_directory::*};
 
 pub struct AppSuite {
     system_directory_app: SystemDirectoryAppImpl,
     package_app: PackageAppImpl,
+    credential_app: CredentialAppImpl,
 }
 
 impl HasSystemDirectoryApp for AppSuite {
@@ -42,13 +43,23 @@ impl HasPackageApp for AppSuite {
     }
 }
 
+impl HasCredentialApp for AppSuite {
+    type App = CredentialAppImpl;
+
+    fn credential_app(&self) -> &Self::App {
+        &self.credential_app
+    }
+}
+
 impl AppSuite {
     pub fn new() -> Self {
         let system_directory_app = SystemDirectoryAppImpl;
         let package_app = PackageAppImpl;
+        let credential_app = CredentialAppImpl;
         Self {
             system_directory_app,
             package_app,
+            credential_app,
         }
     }
 }

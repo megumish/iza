@@ -8,3 +8,9 @@ impl UserName {
         Self { name_string }
     }
 }
+
+impl ToString for UserName {
+    fn to_string(&self) -> String {
+        self.name_string.clone()
+    }
+}

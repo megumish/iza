@@ -64,3 +64,11 @@ pub trait CredentialApp: HasCredentialDistributeService + HasCredentialRepositor
             .boxed()
     }
 }
+
+pub trait HasCredentialApp {
+    type App: CredentialApp;
+
+    fn credential_app(&self) -> &Self::App;
+}
+
+impl<T> CredentialApp for T where T: HasCredentialDistributeService + HasCredentialRepository + Sync {}

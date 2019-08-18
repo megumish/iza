@@ -83,3 +83,5 @@ pub trait HasCredentialDistributeService {
 
     fn credential_distribute_service(&self) -> &Self::Service;
 }
+
+impl<T> CredentialDistributeService for T where T: HasSSHConnectionApp + Sync {}

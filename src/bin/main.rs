@@ -4,7 +4,7 @@ extern crate clap;
 extern crate log;
 
 use futures::{executor, prelude::*};
-use iza::{package::*, system_directory::*};
+use iza::{credential::*, package::*, system_directory::*};
 use std::collections::HashMap;
 use std::env;
 
@@ -100,17 +100,17 @@ fn main() -> Result<(), failure::Error> {
                 let host = matches.value_of("HOST").unwrap();
 
                 let mut info = HashMap::new();
-                info.insert("user", user);
-                info.insert("host", host);
+                info.insert("user".to_owned(), user.to_owned());
+                info.insert("host".to_owned(), host.to_owned());
 
-                // let new_ssh_future = iza::SUITE.credential_app().new_credential(
-                //     "SSHConnection".to_owned(),
-                //     info,
-                //     current_dir.to_owned(),
-                // );
+                let new_ssh_future = iza::SUITE.credential_app().new_credential(
+                    "SSHConnection".to_owned(),
+                    info,
+                    current_dir.to_owned(),
+                );
 
-                // let mut executor = executor::ThreadPool::new()?;
-                // executor.run(new_ssh_future)?;
+                let mut executor = executor::ThreadPool::new()?;
+                executor.run(new_ssh_future)?;
             }
         }
     }
