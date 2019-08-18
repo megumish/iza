@@ -90,7 +90,36 @@ impl SSHConnectionRepository for SSHConnectionRepositoryDefaultImpl {
     }
 
     fn ssh_connections(&self, working_directory: &WorkingDirectory) -> Result<Vec<SSHConnection>> {
-        unimplemented!()
+        let working_directory = working_directory.to_string();
+
+        let ssh_connections_path_buf = {
+            let mut p = path::Path::new(&working_directory).to_path_buf();
+            p.push(".iza");
+            p.push("credential");
+            p.push("ssh_connection");
+            p
+        };
+
+        Ok({
+            let mut input_data = Vec::new();
+            let mut ssh_connections_file = fs::File::open(&ssh_connections_path_buf)?;
+            ssh_connections_file.read_to_end(&mut input_data)?;
+            let ssh_connections: Vec<YamlSSHConnection> = if input_data.is_empty() {
+                Vec::new()
+            } else {
+                yaml::from_slice(&input_data)?
+            };
+            ssh_connections
+                .iter()
+                .map(|p| {
+                    SSHConnection::new(
+                        p.id_of_yaml_ssh_connection(),
+                        p.user_of_yaml_ssh_connection(),
+                        p.host_of_yaml_ssh_connection(),
+                    )
+                })
+                .collect()
+        })
     }
 
     fn ssh_connection_of_id(

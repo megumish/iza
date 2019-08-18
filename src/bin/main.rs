@@ -4,7 +4,7 @@ extern crate clap;
 extern crate log;
 
 use futures::{executor, prelude::*};
-use iza::{credential::*, package::*, system_directory::*};
+use iza::{credential::*, package::*, ssh_connection::*, system_directory::*};
 use std::collections::HashMap;
 use std::env;
 
@@ -38,11 +38,20 @@ fn main() -> Result<(), failure::Error> {
                 )
             )
         )
+        (@subcommand object =>
+            (about: "object manager")
+            (@subcommand new =>
+                (about: "create new package")
+                (@arg LOCAL_PATH: +required "new object local path")
+                (@arg REMOTE_PATH: +required "new object remote path")
+                (@arg CREDENTIAL_ID: +required "id of credential to deploy")
+            )
+        )
     )
     .get_matches();
 
     env_logger::builder()
-        .filter_level(log::LevelFilter::Info)
+        .filter_level(log::LevelFilter::Debug)
         .init();
     let current_dir = &env::current_dir()?
         .to_str()
@@ -111,6 +120,21 @@ fn main() -> Result<(), failure::Error> {
 
                 let mut executor = executor::ThreadPool::new()?;
                 executor.run(new_ssh_future)?;
+            } else {
+                let ssh_connections_future = iza::SUITE
+                    .ssh_connection_app()
+                    .ssh_connections(current_dir.to_owned());
+
+                let mut executor = executor::ThreadPool::new()?;
+
+                let ssh_connections = executor.run(ssh_connections_future)?;
+                println!("SSHConnection List");
+                ssh_connections.into_iter().for_each(|c| {
+                    println!("id: {}", c.id_of_ssh_connection().to_string());
+                    println!("user: {}", c.user_name_of_ssh_connection().to_string());
+                    println!("host: {}", c.host_name_of_ssh_connection().to_string());
+                    println!("");
+                });
             }
         }
     }

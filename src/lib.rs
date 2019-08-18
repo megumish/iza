@@ -19,12 +19,13 @@ lazy_static! {
     pub static ref SUITE: AppSuite = AppSuite::new();
 }
 
-use crate::{credential::*, package::*, system_directory::*};
+use crate::{credential::*, package::*, ssh_connection::*, system_directory::*};
 
 pub struct AppSuite {
     system_directory_app: SystemDirectoryAppImpl,
     package_app: PackageAppImpl,
     credential_app: CredentialAppImpl,
+    ssh_connection_app: SSHConnectionAppImpl,
 }
 
 impl HasSystemDirectoryApp for AppSuite {
@@ -51,15 +52,25 @@ impl HasCredentialApp for AppSuite {
     }
 }
 
+impl HasSSHConnectionApp for AppSuite {
+    type App = SSHConnectionAppImpl;
+
+    fn ssh_connection_app(&self) -> &Self::App {
+        &self.ssh_connection_app
+    }
+}
+
 impl AppSuite {
     pub fn new() -> Self {
         let system_directory_app = SystemDirectoryAppImpl;
         let package_app = PackageAppImpl;
         let credential_app = CredentialAppImpl;
+        let ssh_connection_app = SSHConnectionAppImpl;
         Self {
             system_directory_app,
             package_app,
             credential_app,
+            ssh_connection_app,
         }
     }
 }
