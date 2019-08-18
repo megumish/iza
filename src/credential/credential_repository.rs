@@ -2,6 +2,7 @@ mod yaml_credential;
 
 use self::yaml_credential::*;
 use crate::credential::*;
+use crate::dot_iza::*;
 use futures::prelude::*;
 use serde_yaml as yaml;
 use std::fs;
@@ -9,7 +10,9 @@ use std::io::prelude::*;
 use std::path;
 use std::pin::Pin;
 
-pub trait CredentialRepository {
+pub trait CredentialRepository: DotIza {
+    fn init(&self, working_directory: &'static str) -> RetFuture<()>;
+
     fn push(
         &self,
         credential: &Credential,
@@ -30,7 +33,21 @@ pub trait CredentialRepository {
 
 pub struct CredentialRepositoryDefaultImpl;
 
+impl DotIza for CredentialRepositoryDefaultImpl {
+    type Module = Credential;
+    type YamlModule = YamlCredential;
+    type Error = Error;
+    const MODULE_NAME: &'static str = "credential";
+    const MODULE_PRURAL_NAME: &'static str = "credentials";
+}
+
 impl CredentialRepository for CredentialRepositoryDefaultImpl {
+    fn init(&self, working_directory: &'static str) -> RetFuture<()> {
+        Self::init_module_top(working_directory)
+            .and_then(|t| Self::init_module_files(t))
+            .boxed()
+    }
+
     fn push(
         &self,
         credential: &Credential,

@@ -1,3 +1,5 @@
+use crate::dot_iza::*;
+
 #[derive(PartialEq, Clone, Serialize, Deserialize)]
 pub struct YamlSSHConnection {
     id: String,
@@ -22,3 +24,5 @@ impl YamlSSHConnection {
         self.host.to_string()
     }
 }
+
+impl YamlModule for YamlSSHConnection {}

@@ -1,3 +1,5 @@
+use crate::dot_iza::*;
+
 #[derive(PartialEq, Clone, Serialize, Deserialize)]
 pub struct YamlObjectInfo {
     id: String,
@@ -32,3 +34,5 @@ impl YamlObjectInfo {
         self.credential_id.to_string()
     }
 }
+
+impl YamlModule for YamlObjectInfo {}

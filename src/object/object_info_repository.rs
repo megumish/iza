@@ -1,6 +1,7 @@
 mod yaml_object_info;
 
 use self::yaml_object_info::*;
+use crate::dot_iza::*;
 use crate::object::*;
 use futures::prelude::*;
 use serde_yaml as yaml;
@@ -9,7 +10,9 @@ use std::io::prelude::*;
 use std::path;
 use std::pin::Pin;
 
-pub trait ObjectInfoRepository {
+pub trait ObjectInfoRepository: DotIza {
+    fn init(&self, working_directory: &'static str) -> RetFuture<()>;
+
     fn push(
         &self,
         object_info: &ObjectInfo,
@@ -25,7 +28,21 @@ pub trait ObjectInfoRepository {
 
 pub struct ObjectInfoRepositoryDefaultImpl;
 
+impl DotIza for ObjectInfoRepositoryDefaultImpl {
+    type Module = ObjectInfo;
+    type YamlModule = YamlObjectInfo;
+    type Error = Error;
+    const MODULE_NAME: &'static str = "object_info";
+    const MODULE_PRURAL_NAME: &'static str = "object_info";
+}
+
 impl ObjectInfoRepository for ObjectInfoRepositoryDefaultImpl {
+    fn init(&self, working_directory: &'static str) -> RetFuture<()> {
+        Self::init_module_top(working_directory)
+            .and_then(|t| Self::init_module_files(t))
+            .boxed()
+    }
+
     fn push(
         &self,
         object_info: &ObjectInfo,

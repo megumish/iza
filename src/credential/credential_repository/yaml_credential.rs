@@ -1,3 +1,5 @@
+use crate::dot_iza::*;
+
 #[derive(PartialEq, Clone, Serialize, Deserialize)]
 pub struct YamlCredential {
     id: String,
@@ -17,3 +19,5 @@ impl YamlCredential {
         self.kind.to_string()
     }
 }
+
+impl YamlModule for YamlCredential {}

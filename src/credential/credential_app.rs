@@ -5,6 +5,16 @@ use std::convert::TryInto;
 use std::pin::Pin;
 
 pub trait CredentialApp: HasCredentialDistributeService + HasCredentialRepository + Sync {
+    fn init(&'static self, working_directory: &'static str) -> RetFuture<()> {
+        future::try_join(
+            self.credential_repository().init(working_directory),
+            self.credential_distribute_service()
+                .init(CredentialKind::SSHConnection, working_directory),
+        )
+        .and_then(|_| future::ready(Ok(())))
+        .boxed()
+    }
+
     fn new_credential(
         &'static self,
         kind: String,

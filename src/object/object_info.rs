@@ -1,3 +1,4 @@
+use crate::dot_iza::*;
 use crate::object::*;
 
 #[derive(Clone)]
@@ -58,3 +59,5 @@ impl ObjectInfo {
         self.credential_id.clone()
     }
 }
+
+impl Module for ObjectInfo {}

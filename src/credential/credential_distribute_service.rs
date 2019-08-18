@@ -4,9 +4,23 @@ use futures::prelude::*;
 use std::collections::HashMap;
 use std::pin::Pin;
 
-use crate::credential::{Error, Result};
+use crate::credential::{Error, Result, RetFuture};
 
 pub trait CredentialDistributeService: HasSSHConnectionApp + Sync {
+    fn init(&'static self, kind: CredentialKind, working_directory: &'static str) -> RetFuture<()> {
+        use CredentialKind::*;
+        match kind {
+            SSHConnection => self
+                .ssh_connection_app()
+                .init(working_directory)
+                .map_err(|e| {
+                    eprintln!("{}", e);
+                    Error::OtherAppError
+                })
+                .boxed(),
+        }
+    }
+
     fn new_credential_of_kind(
         &'static self,
         kind: CredentialKind,

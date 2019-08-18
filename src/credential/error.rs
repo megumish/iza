@@ -40,6 +40,7 @@ impl NotEnoughInfo {
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
+pub type RetFuture<T> = std::pin::Pin<Box<dyn futures::future::Future<Output = Result<T>> + Send>>;
 
 impl From<std::io::Error> for Error {
     fn from(error: std::io::Error) -> Self {

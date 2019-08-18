@@ -3,9 +3,14 @@ use crate::ssh_connection::*;
 use futures::prelude::*;
 use std::pin::Pin;
 
-use crate::ssh_connection::{Error, Result};
+use crate::ssh_connection::{Error, Result, RetFuture};
 
 pub trait SSHConnectionApp: HasSSHConnectionRepository + HasRemoteFileRepository + Sync {
+    fn init(&'static self, working_directory: &'static str) -> RetFuture<()> {
+        self.ssh_connection_repository()
+            .init(working_directory)
+            .boxed()
+    }
     fn new_ssh_connection(
         &'static self,
         user_name: String,

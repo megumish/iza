@@ -1,4 +1,5 @@
 use crate::credential::*;
+use crate::dot_iza::*;
 use crate::ssh_connection::*;
 
 #[derive(Clone)]
@@ -53,3 +54,5 @@ impl CredentialAs for SSHConnection {
         "SSHConnection".to_owned()
     }
 }
+
+impl Module for SSHConnection {}

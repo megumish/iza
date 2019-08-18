@@ -70,10 +70,20 @@ fn main() -> Result<(), failure::Error> {
     if matches.subcommand_matches("init").is_some() {
         let current_dir = current_dir.clone();
         let init_future = iza::dot_iza::init(current_dir).and_then(|()| {
-            iza::SUITE
-                .package_app()
-                .init(current_dir)
-                .map_err(Into::<failure::Error>::into)
+            future::try_join3(
+                iza::SUITE
+                    .package_app()
+                    .init(current_dir)
+                    .map_err(Into::<failure::Error>::into),
+                iza::SUITE
+                    .credential_app()
+                    .init(current_dir)
+                    .map_err(Into::<failure::Error>::into),
+                iza::SUITE
+                    .object_app()
+                    .init(current_dir)
+                    .map_err(Into::<failure::Error>::into),
+            )
         });
         let mut executor = executor::ThreadPool::new()?;
         let _ = executor.run(init_future)?;

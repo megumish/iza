@@ -1,6 +1,7 @@
 mod yaml_object;
 
 use self::yaml_object::*;
+use crate::dot_iza::*;
 use crate::object::*;
 use futures::prelude::*;
 use serde_yaml as yaml;
@@ -9,7 +10,9 @@ use std::io::prelude::*;
 use std::path;
 use std::pin::Pin;
 
-pub trait ObjectRepository {
+pub trait ObjectRepository: DotIza {
+    fn init(&self, working_directory: &'static str) -> RetFuture<()>;
+
     fn push(
         &self,
         object: &Object,
@@ -25,7 +28,21 @@ pub trait ObjectRepository {
 
 pub struct ObjectRepositoryDefaultImpl;
 
+impl DotIza for ObjectRepositoryDefaultImpl {
+    type Module = Object;
+    type YamlModule = YamlObject;
+    type Error = Error;
+    const MODULE_NAME: &'static str = "object";
+    const MODULE_PRURAL_NAME: &'static str = "objects";
+}
+
 impl ObjectRepository for ObjectRepositoryDefaultImpl {
+    fn init(&self, working_directory: &'static str) -> RetFuture<()> {
+        Self::init_module_top(working_directory)
+            .and_then(|t| Self::init_module_files(t))
+            .boxed()
+    }
+
     fn push(
         &self,
         object: &Object,

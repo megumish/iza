@@ -3,6 +3,15 @@ use futures::prelude::*;
 use std::pin::Pin;
 
 pub trait ObjectApp: HasObjectInfoRepository + HasObjectRepository + Sync {
+    fn init(&'static self, working_directory: &'static str) -> RetFuture<()> {
+        future::try_join(
+            self.object_repository().init(working_directory),
+            self.object_info_repository().init(working_directory),
+        )
+        .and_then(|_| future::ready(Ok(())))
+        .boxed()
+    }
+
     fn new_object(
         &'static self,
         local_path: String,

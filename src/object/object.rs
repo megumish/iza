@@ -1,3 +1,4 @@
+use crate::dot_iza::*;
 use crate::object::*;
 
 #[derive(Clone)]
@@ -43,3 +44,5 @@ impl Object {
         self.object_info_id.to_string()
     }
 }
+
+impl Module for Object {}

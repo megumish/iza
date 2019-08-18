@@ -1,4 +1,5 @@
 use crate::credential::*;
+use crate::dot_iza::*;
 use std::convert::TryInto;
 
 #[derive(Clone)]
@@ -22,3 +23,5 @@ impl Credential {
         self.kind.clone()
     }
 }
+
+impl Module for Credential {}

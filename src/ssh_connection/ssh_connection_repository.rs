@@ -1,6 +1,7 @@
 mod yaml_ssh_connection;
 
 use self::yaml_ssh_connection::*;
+use crate::dot_iza::*;
 use crate::ssh_connection::*;
 use futures::prelude::*;
 use serde_yaml as yaml;
@@ -9,7 +10,9 @@ use std::io::prelude::*;
 use std::path;
 use std::pin::Pin;
 
-pub trait SSHConnectionRepository {
+pub trait SSHConnectionRepository: DotIza {
+    fn init(&self, working_directory: &'static str) -> RetFuture<()>;
+
     fn push(
         &self,
         ssh_connection: &SSHConnection,
@@ -29,7 +32,21 @@ pub trait SSHConnectionRepository {
 
 pub struct SSHConnectionRepositoryDefaultImpl;
 
+impl DotIza for SSHConnectionRepositoryDefaultImpl {
+    type Module = SSHConnection;
+    type YamlModule = YamlSSHConnection;
+    type Error = Error;
+    const MODULE_NAME: &'static str = "ssh_connection";
+    const MODULE_PRURAL_NAME: &'static str = "ssh_connections";
+}
+
 impl SSHConnectionRepository for SSHConnectionRepositoryDefaultImpl {
+    fn init(&self, working_directory: &'static str) -> RetFuture<()> {
+        Self::init_module_top(working_directory)
+            .and_then(|t| Self::init_module_files(t))
+            .boxed()
+    }
+
     fn push(
         &self,
         ssh_connection: &SSHConnection,
