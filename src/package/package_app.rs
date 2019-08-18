@@ -3,6 +3,10 @@ use futures::prelude::*;
 use std::pin::Pin;
 
 pub trait PackageApp: HasPackageRepository + Sync {
+    fn init(&'static self, working_directory: &'static str) -> RetFuture<()> {
+        self.package_repository().init(working_directory).boxed()
+    }
+
     fn new_package(
         &'static self,
         name: String,

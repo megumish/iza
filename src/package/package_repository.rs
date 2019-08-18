@@ -1,13 +1,17 @@
 mod yaml_package;
 
 use self::yaml_package::*;
+use crate::dot_iza::*;
 use crate::package::*;
+use futures::prelude::*;
 use serde_yaml as yaml;
 use std::fs;
 use std::io::prelude::*;
 use std::path;
 
-pub trait PackageRepository {
+pub trait PackageRepository: DotIza {
+    fn init(&self, working_directory: &'static str) -> RetFuture<()>;
+
     fn push(&self, package: &Package, working_directory: &WorkingDirectory) -> Result<()>;
 
     fn delete(&self, package: &Package, working_directory: &WorkingDirectory) -> Result<()>;
@@ -31,7 +35,21 @@ pub trait PackageRepository {
 
 pub struct PackageRepositoryDefaultImpl;
 
+impl DotIza for PackageRepositoryDefaultImpl {
+    type Module = Package;
+    type YamlModule = YamlPackage;
+    type Error = Error;
+    const MODULE_NAME: &'static str = "package";
+    const MODULE_PRURAL_NAME: &'static str = "packages";
+}
+
 impl PackageRepository for PackageRepositoryDefaultImpl {
+    fn init(&self, working_directory: &'static str) -> RetFuture<()> {
+        Self::init_module_top(working_directory)
+            .and_then(|t| Self::init_module_files(t))
+            .boxed()
+    }
+
     fn push(&self, package: &Package, working_directory: &WorkingDirectory) -> Result<()> {
         let name = package.name_of_package().to_string();
         let working_directory = working_directory.to_string();

@@ -9,6 +9,7 @@ extern crate log;
 extern crate lazy_static;
 
 pub mod credential;
+pub mod dot_iza;
 pub mod object;
 pub mod package;
 pub mod ssh_connection;

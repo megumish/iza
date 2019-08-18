@@ -1,3 +1,5 @@
+use crate::dot_iza::*;
+
 #[derive(PartialEq, Clone, Serialize, Deserialize)]
 pub struct YamlPackage {
     name: String,
@@ -12,3 +14,5 @@ impl YamlPackage {
         self.name.to_string()
     }
 }
+
+impl YamlModule for YamlPackage {}

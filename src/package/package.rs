@@ -1,3 +1,4 @@
+use crate::dot_iza::*;
 use crate::package::*;
 
 #[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
@@ -15,3 +16,5 @@ impl Package {
         self.name.to_string()
     }
 }
+
+impl Module for Package {}
