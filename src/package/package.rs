@@ -1,5 +1,6 @@
 use crate::package::*;
 
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct Package {
     name: PackageName,
 }

@@ -1,5 +1,8 @@
+#[derive(Debug, Fail)]
 pub enum Error {
+    #[fail(display = "invalid top path")]
     InvalidTopPath,
+    #[fail(display = "io error")]
     IOError,
 }
 

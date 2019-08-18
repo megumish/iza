@@ -1,3 +1,4 @@
+#[derive(Debug, PartialEq, Clone, Serialize, Deserialize)]
 pub struct PackageName {
     name_string: String,
 }

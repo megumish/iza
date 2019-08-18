@@ -24,7 +24,7 @@ pub trait SystemDirectoryApp: HasSystemDirectoryMaker + Sync {
 pub trait HasSystemDirectoryApp {
     type App: SystemDirectoryApp;
 
-    fn system_directory_app(&self) -> Self::App;
+    fn system_directory_app(&self) -> &Self::App;
 }
 
 impl<T> SystemDirectoryApp for T where T: HasSystemDirectoryMaker + Sync {}

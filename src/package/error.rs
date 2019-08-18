@@ -1,8 +1,12 @@
+#[derive(Debug, Fail)]
 pub enum Error {
+    #[fail(display = "io error")]
     IOError,
-    TomlDeserializeError,
-    TomlSerializeError,
+    #[fail(display = "yaml serialize or deserialize error")]
+    YamlParseError,
+    #[fail(display = "already exist package")]
     AlreadyExistPackage,
+    #[fail(display = "not found package")]
     NotFoundPackage,
 }
 
@@ -15,16 +19,9 @@ impl From<std::io::Error> for Error {
     }
 }
 
-impl From<toml::de::Error> for Error {
-    fn from(error: toml::de::Error) -> Self {
+impl From<serde_yaml::Error> for Error {
+    fn from(error: serde_yaml::Error) -> Self {
         eprintln!("{}", error);
-        Error::TomlDeserializeError
-    }
-}
-
-impl From<toml::ser::Error> for Error {
-    fn from(error: toml::ser::Error) -> Self {
-        eprintln!("{}", error);
-        Error::TomlSerializeError
+        Error::YamlParseError
     }
 }
