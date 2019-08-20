@@ -10,7 +10,9 @@ use std::io::prelude::*;
 use std::path;
 use std::pin::Pin;
 
-pub trait ObjectInfoRepository: DotIza {
+use crate::object::{Error, Result};
+
+pub trait ObjectInfoRepository {
     fn init(&self, working_directory: &'static str) -> RetFuture<()>;
 
     fn push(
@@ -26,20 +28,14 @@ pub trait ObjectInfoRepository: DotIza {
     ) -> Pin<Box<dyn Future<Output = Result<ObjectInfo>> + Send>>;
 }
 
-pub struct ObjectInfoRepositoryDefaultImpl;
+pub struct DotIzaObjectInfoRepository;
 
-impl DotIza for ObjectInfoRepositoryDefaultImpl {
-    type Module = ObjectInfo;
-    type YamlModule = YamlObjectInfo;
-    type Error = Error;
-    const MODULE_NAME: &'static str = "object_info";
-    const MODULE_PRURAL_NAME: &'static str = "object_info";
-}
+const PRURAL_NAME: &'static str = "object_info";
 
-impl ObjectInfoRepository for ObjectInfoRepositoryDefaultImpl {
+impl ObjectInfoRepository for DotIzaObjectInfoRepository {
     fn init(&self, working_directory: &'static str) -> RetFuture<()> {
-        Self::init_module_top(working_directory)
-            .and_then(|t| Self::init_module_files(t))
+        init_module_file(working_directory, PRURAL_NAME)
+            .map_err(Into::into)
             .boxed()
     }
 

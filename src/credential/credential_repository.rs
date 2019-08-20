@@ -10,7 +10,9 @@ use std::io::prelude::*;
 use std::path;
 use std::pin::Pin;
 
-pub trait CredentialRepository: DotIza {
+use crate::credential::{Error, Result};
+
+pub trait CredentialRepository {
     fn init(&self, working_directory: &'static str) -> RetFuture<()>;
 
     fn push(
@@ -31,20 +33,14 @@ pub trait CredentialRepository: DotIza {
     ) -> Pin<Box<dyn Future<Output = Result<Credential>> + Send>>;
 }
 
-pub struct CredentialRepositoryDefaultImpl;
+pub struct DotIzaCredentialRepository;
 
-impl DotIza for CredentialRepositoryDefaultImpl {
-    type Module = Credential;
-    type YamlModule = YamlCredential;
-    type Error = Error;
-    const MODULE_NAME: &'static str = "credential";
-    const MODULE_PRURAL_NAME: &'static str = "credentials";
-}
+const PRURAL_NAME: &'static str = "credentials";
 
-impl CredentialRepository for CredentialRepositoryDefaultImpl {
+impl CredentialRepository for DotIzaCredentialRepository {
     fn init(&self, working_directory: &'static str) -> RetFuture<()> {
-        Self::init_module_top(working_directory)
-            .and_then(|t| Self::init_module_files(t))
+        init_module_file(working_directory, PRURAL_NAME)
+            .map_err(Into::into)
             .boxed()
     }
 

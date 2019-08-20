@@ -1,18 +1,18 @@
 use crate::dot_iza::*;
+use crate::package::*;
+use std::sync::Arc;
 
-#[derive(PartialEq, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Hash, Clone, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct YamlPackage {
     name: String,
 }
 
-impl YamlPackage {
-    pub fn new(name: String) -> Self {
+impl YamlPackage {}
+
+impl YamlModule<Package> for YamlPackage {
+    fn new_yaml_module(package: Arc<Package>) -> Self {
+        let name: PackageName = (&*package).into();
+        let name = name.to_string();
         Self { name }
     }
-
-    pub fn name_of_yaml_package(&self) -> String {
-        self.name.to_string()
-    }
 }
-
-impl YamlModule for YamlPackage {}

@@ -8,6 +8,8 @@ pub struct Object {
     object_info_id: ObjectInfoID,
 }
 
+use crate::object::{Error, Result};
+
 impl Object {
     pub fn new(object_info_id: ObjectInfoID, package_id: String) -> Self {
         let id = ObjectID::new();

@@ -3,17 +3,17 @@ use crate::object::*;
 pub struct ObjectAppImpl;
 
 impl HasObjectRepository for ObjectAppImpl {
-    type Repository = ObjectRepositoryDefaultImpl;
+    type Repository = DotIzaObjectRepository;
 
     fn object_repository(&self) -> &Self::Repository {
-        &ObjectRepositoryDefaultImpl
+        &DotIzaObjectRepository
     }
 }
 
 impl HasObjectInfoRepository for ObjectAppImpl {
-    type Repository = ObjectInfoRepositoryDefaultImpl;
+    type Repository = DotIzaObjectInfoRepository;
 
     fn object_info_repository(&self) -> &Self::Repository {
-        &ObjectInfoRepositoryDefaultImpl
+        &DotIzaObjectInfoRepository
     }
 }

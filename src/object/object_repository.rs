@@ -10,7 +10,9 @@ use std::io::prelude::*;
 use std::path;
 use std::pin::Pin;
 
-pub trait ObjectRepository: DotIza {
+use crate::object::{Error, Result};
+
+pub trait ObjectRepository {
     fn init(&self, working_directory: &'static str) -> RetFuture<()>;
 
     fn push(
@@ -26,21 +28,13 @@ pub trait ObjectRepository: DotIza {
     ) -> Pin<Box<dyn Future<Output = Result<Vec<Object>>> + Send>>;
 }
 
-pub struct ObjectRepositoryDefaultImpl;
+pub struct DotIzaObjectRepository;
 
-impl DotIza for ObjectRepositoryDefaultImpl {
-    type Module = Object;
-    type YamlModule = YamlObject;
-    type Error = Error;
-    const MODULE_NAME: &'static str = "object";
-    const MODULE_PRURAL_NAME: &'static str = "objects";
-}
+const PRURAL_NAME: &'static str = "objects";
 
-impl ObjectRepository for ObjectRepositoryDefaultImpl {
+impl ObjectRepository for DotIzaObjectRepository {
     fn init(&self, working_directory: &'static str) -> RetFuture<()> {
-        Self::init_module_top(working_directory)
-            .and_then(|t| Self::init_module_files(t))
-            .boxed()
+        init_module_file(working_directory, PRURAL_NAME)
     }
 
     fn push(

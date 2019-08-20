@@ -1,24 +1,20 @@
 use crate::package::*;
 use futures::prelude::*;
 use std::pin::Pin;
+use std::sync::Arc;
 
 pub trait PackageApp: HasPackageRepository + Sync {
-    fn init(&'static self, working_directory: &'static str) -> RetFuture<()> {
+    fn init(&'static self, working_directory: &'static str) -> ResultFuture<()> {
         self.package_repository().init(working_directory).boxed()
     }
 
     fn new_package(
         &'static self,
         name: String,
-        working_directory: String,
-    ) -> Pin<Box<dyn Future<Output = Result<()>>>> {
-        future::ready(Ok(Package::new(name)))
-            .and_then(move |p| {
-                future::ready(
-                    self.package_repository()
-                        .push(&p, &working_directory.into()),
-                )
-            })
+        working_directory: &'static str,
+    ) -> ResultFuture<Arc<Package>> {
+        future::ready(Ok(Package::new_arc(name)))
+            .and_then(move |p| self.package_repository().push(p, working_directory))
             .boxed()
     }
 

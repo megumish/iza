@@ -10,7 +10,9 @@ use std::io::prelude::*;
 use std::path;
 use std::pin::Pin;
 
-pub trait SSHConnectionRepository: DotIza {
+use crate::ssh_connection::{Error, Result};
+
+pub trait SSHConnectionRepository {
     fn init(&self, working_directory: &'static str) -> RetFuture<()>;
 
     fn push(
@@ -30,21 +32,13 @@ pub trait SSHConnectionRepository: DotIza {
     ) -> Result<SSHConnection>;
 }
 
-pub struct SSHConnectionRepositoryDefaultImpl;
+pub struct DotIzaSSHConnectionRepository;
 
-impl DotIza for SSHConnectionRepositoryDefaultImpl {
-    type Module = SSHConnection;
-    type YamlModule = YamlSSHConnection;
-    type Error = Error;
-    const MODULE_NAME: &'static str = "ssh_connection";
-    const MODULE_PRURAL_NAME: &'static str = "ssh_connections";
-}
+const PRURAL_NAME: &'static str = "ssh_connections";
 
-impl SSHConnectionRepository for SSHConnectionRepositoryDefaultImpl {
+impl SSHConnectionRepository for DotIzaSSHConnectionRepository {
     fn init(&self, working_directory: &'static str) -> RetFuture<()> {
-        Self::init_module_top(working_directory)
-            .and_then(|t| Self::init_module_files(t))
-            .boxed()
+        init_module_file(working_directory, PRURAL_NAME)
     }
 
     fn push(

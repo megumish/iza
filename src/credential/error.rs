@@ -14,6 +14,8 @@ pub enum Error {
     InvalidCredentialKind(String),
     #[fail(display = "not enough info: {}", _0)]
     NotEnoughInfo(NotEnoughInfo),
+    #[fail(display = "dot iza system error")]
+    DotIzaError,
     #[fail(display = "other app error")]
     OtherAppError,
 }
@@ -53,5 +55,12 @@ impl From<serde_yaml::Error> for Error {
     fn from(error: serde_yaml::Error) -> Self {
         eprintln!("{}", error);
         Error::YamlParseError
+    }
+}
+
+impl From<crate::dot_iza::Error> for Error {
+    fn from(error: crate::dot_iza::Error) -> Self {
+        eprintln!("{}", error);
+        Error::DotIzaError
     }
 }

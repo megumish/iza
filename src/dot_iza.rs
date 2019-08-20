@@ -1,11 +1,12 @@
 use futures::prelude::*;
+use serde::{de::DeserializeOwned, Serialize};
+use serde_yaml as yaml;
 use std::fs;
+use std::io::{Read, Write};
 use std::path;
-use std::pin::Pin;
+use std::sync::Arc;
 
-type RetFuture<T, E> = Pin<Box<dyn Future<Output = std::result::Result<T, E>> + Send>>;
-
-pub fn init(working_directory: &'static str) -> RetFuture<(), failure::Error> {
+pub fn init_dot_iza(working_directory: &'static str) -> ResultFuture<()> {
     future::lazy(move |_| {
         let top_path_buf = top_path_buf_of_working_directory(working_directory);
         fs::create_dir(&top_path_buf)?;
@@ -14,59 +15,162 @@ pub fn init(working_directory: &'static str) -> RetFuture<(), failure::Error> {
     .boxed()
 }
 
-pub trait DotIza {
-    type Module: Module;
-    type YamlModule: YamlModule;
-    type Error: Send + From<std::io::Error> + 'static;
-    const MODULE_NAME: &'static str;
-    const MODULE_PRURAL_NAME: &'static str;
-
-    fn init_module_top(
-        working_directory: &'static str,
-    ) -> RetFuture<&'static path::Path, Self::Error> {
-        future::lazy(move |_| {
-            let mut module_top_path_buf = top_path_buf_of_working_directory(working_directory);
-            module_top_path_buf.push(Self::MODULE_NAME);
-            fs::create_dir(&module_top_path_buf)?;
-            let module_top_path: &'static path::Path = {
-                let t = module_top_path_buf.as_path().into();
-                Box::leak::<'static>(t)
-            };
-            Ok(module_top_path)
-        })
-        .boxed()
-    }
-
-    fn init_module_files(top_path: &'static path::Path) -> RetFuture<(), Self::Error> {
-        let top_path_buf = top_path.to_path_buf();
-        let top_path_buf2 = top_path.to_path_buf();
-
-        future::try_join(
-            future::lazy(move |_| {
-                let mut default_module_path_buf = top_path_buf.clone();
-                default_module_path_buf.push("default");
-                let _ = fs::File::create(&default_module_path_buf)?;
-
-                Ok(())
-            }),
-            future::lazy(move |_| {
-                let mut modules_path_buf = top_path_buf2.clone();
-                modules_path_buf.push(Self::MODULE_PRURAL_NAME);
-                let _ = fs::File::create(&modules_path_buf)?;
-
-                Ok(())
-            }),
-        )
-        .and_then(|_| future::ready(Ok(())))
-        .boxed()
-    }
+pub fn init_module_file(
+    working_directory: &'static str,
+    module_prural_name: &'static str,
+) -> ResultFuture<()> {
+    future::lazy(move |_| {
+        let modules_file_path_buf =
+            modules_file_path_buf_of_working(working_directory, module_prural_name);
+        let _ = fs::File::create(&modules_file_path_buf)?;
+        Ok(())
+    })
+    .boxed()
 }
 
-pub trait Module {}
-pub trait YamlModule {}
+pub fn push_module<M, YM>(
+    module: Arc<M>,
+    working_directory: &'static str,
+    module_prural_name: &'static str,
+) -> ResultFuture<Arc<M>>
+where
+    M: Module,
+    YM: YamlModule<M>,
+{
+    future::lazy(move |_| {
+        let modules_file_path_buf =
+            modules_file_path_buf_of_working(working_directory, module_prural_name);
 
-fn top_path_buf_of_working_directory(working_directory: &'static str) -> path::PathBuf {
+        let new_modules = {
+            let mut input_data = Vec::new();
+            let mut modules_file = fs::File::open(&modules_file_path_buf)?;
+            modules_file.read_to_end(&mut input_data)?;
+            let mut modules: Vec<YM> = if input_data.is_empty() {
+                Vec::new()
+            } else {
+                yaml::from_slice(&input_data)?
+            };
+
+            let new_yaml_module = YM::new_yaml_module(module.clone());
+            match modules.iter().find(|m| *m == &new_yaml_module) {
+                Some(_) => Err(ErrorKind::AlreadyExistModule)?,
+                None => modules.push(new_yaml_module),
+            }
+
+            modules
+        };
+
+        {
+            let mut new_modules = new_modules;
+            new_modules.sort();
+            let output_data = yaml::to_vec(&new_modules)?;
+            let mut modules_file = fs::File::create(&modules_file_path_buf)?;
+            modules_file.write(&output_data)?;
+        }
+
+        Ok(module.clone())
+    })
+    .boxed()
+}
+
+fn modules_file_path_buf_of_working(
+    working_directory: &str,
+    module_prural_name: &str,
+) -> path::PathBuf {
+    let mut p = top_path_buf_of_working_directory(working_directory);
+    p.push(module_prural_name);
+    p
+}
+
+fn top_path_buf_of_working_directory(working_directory: &str) -> path::PathBuf {
     let mut p = path::Path::new(working_directory).to_path_buf();
     p.push(".iza");
     p
+}
+
+pub trait Module: Clone + Sync + Send + 'static {}
+pub trait YamlModule<M>: Eq + std::hash::Hash + Serialize + DeserializeOwned + Ord {
+    fn new_yaml_module(module: Arc<M>) -> Self
+    where
+        M: Module;
+}
+
+#[derive(Fail, Debug)]
+pub enum ErrorKind {
+    #[fail(display = "IO Error")]
+    IO,
+    #[fail(display = "Already Exist Module")]
+    AlreadyExistModule,
+    #[fail(display = "yaml serialize or deserialize error")]
+    YamlSerializeOrDeserialize,
+}
+
+pub type ResultFuture<T> =
+    std::pin::Pin<Box<dyn futures::Future<Output = std::result::Result<T, Error>> + Send>>;
+
+/* ----------- failure boilerplate ----------- */
+
+use failure::{Backtrace, Context, Fail};
+use std::fmt;
+use std::fmt::Display;
+
+#[derive(Debug)]
+pub struct Error {
+    inner: Context<ErrorKind>,
+}
+
+impl Fail for Error {
+    fn cause(&self) -> Option<&dyn Fail> {
+        self.inner.cause()
+    }
+
+    fn backtrace(&self) -> Option<&Backtrace> {
+        self.inner.backtrace()
+    }
+}
+
+impl Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        Display::fmt(&self.inner, f)
+    }
+}
+
+impl Error {
+    pub fn new(inner: Context<ErrorKind>) -> Error {
+        Error { inner }
+    }
+
+    pub fn kind(&self) -> &ErrorKind {
+        self.inner.get_context()
+    }
+}
+
+impl From<ErrorKind> for Error {
+    fn from(kind: ErrorKind) -> Error {
+        Error {
+            inner: Context::new(kind),
+        }
+    }
+}
+
+impl From<Context<ErrorKind>> for Error {
+    fn from(inner: Context<ErrorKind>) -> Error {
+        Error { inner }
+    }
+}
+
+impl From<std::io::Error> for Error {
+    fn from(error: std::io::Error) -> Self {
+        Error {
+            inner: error.context(ErrorKind::IO),
+        }
+    }
+}
+
+impl From<yaml::Error> for Error {
+    fn from(error: yaml::Error) -> Self {
+        Error {
+            inner: error.context(ErrorKind::YamlSerializeOrDeserialize),
+        }
+    }
 }

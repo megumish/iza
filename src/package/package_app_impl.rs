@@ -3,9 +3,9 @@ use crate::package::*;
 pub struct PackageAppImpl;
 
 impl HasPackageRepository for PackageAppImpl {
-    type Repository = PackageRepositoryDefaultImpl;
+    type Repository = DotIzaPackageRepository;
 
     fn package_repository(&self) -> &Self::Repository {
-        &PackageRepositoryDefaultImpl
+        &DotIzaPackageRepository
     }
 }
