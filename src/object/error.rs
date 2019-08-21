@@ -1,23 +1,13 @@
 #[derive(Debug, Fail)]
 pub enum ErrorKind {
-    #[fail(display = "io error")]
-    IO,
     #[fail(display = "dot iza error")]
     DotIza,
-    #[fail(display = "yaml serialize or deserialize error")]
-    YamlParseError,
-    #[fail(display = "already exist object")]
-    AlreadyExistObject,
-    #[fail(display = "already exist object info")]
-    AlreadyExistObjectInfo,
-    #[fail(display = "not found object")]
-    NotFoundObject,
-    #[fail(display = "not found object info")]
-    NotFoundObjectInfo,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
-pub type RetFuture<T> = std::pin::Pin<Box<dyn futures::future::Future<Output = Result<T>> + Send>>;
+pub type ResultFuture<T> =
+    std::pin::Pin<Box<dyn futures::future::Future<Output = Result<T>> + Send>>;
+/* ----------- failure boilerplate ----------- */
 
 use failure::{Backtrace, Context, Fail};
 use std::fmt;
@@ -29,7 +19,7 @@ pub struct Error {
 }
 
 impl Fail for Error {
-    fn cause(&self) -> Option<&Fail> {
+    fn cause(&self) -> Option<&dyn Fail> {
         self.inner.cause()
     }
 
@@ -68,17 +58,9 @@ impl From<Context<ErrorKind>> for Error {
     }
 }
 
-impl From<std::io::Error> for Error {
-    fn from(error: std::io::Error) -> Self {
-        Self {
-            inner: error.context(ErrorKind::IO),
-        }
-    }
-}
-
 impl From<crate::dot_iza::Error> for Error {
     fn from(error: crate::dot_iza::Error) -> Self {
-        Self {
+        Error {
             inner: error.context(ErrorKind::DotIza),
         }
     }

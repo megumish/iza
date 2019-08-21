@@ -7,11 +7,9 @@ pub struct YamlPackage {
     name: String,
 }
 
-impl YamlPackage {}
-
 impl YamlModule<Package> for YamlPackage {
     fn new_yaml_module(package: Arc<Package>) -> Self {
-        let name: PackageName = (&*package).into();
+        let name: PackageName = (&*package).name_of_package();
         let name = name.to_string();
         Self { name }
     }

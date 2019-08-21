@@ -25,6 +25,5 @@ pub(self) use self::object_info::*;
 pub(self) use self::object_info_id::*;
 pub(self) use self::object_info_repository::*;
 pub(self) use self::object_repository::*;
-pub(self) use self::object_repository::*;
 pub(self) use self::package_id::*;
 pub(self) use self::remote_path::*;

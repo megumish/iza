@@ -27,7 +27,7 @@ pub trait PackageApp: HasPackageRepository + Sync {
             .boxed()
     }
 
-    fn packages(&'static self, working_directory: &'static str) -> ResultFuture<Vec<Package>> {
+    fn packages(&'static self, working_directory: &'static str) -> ResultFuture<Vec<Arc<Package>>> {
         self.package_repository()
             .packages(working_directory)
             .boxed()

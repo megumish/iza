@@ -5,6 +5,7 @@ extern crate serde;
 extern crate lazy_static;
 
 pub mod dot_iza;
+pub mod object;
 pub mod package;
 
 // pub mod credential;

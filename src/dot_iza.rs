@@ -93,7 +93,7 @@ pub fn modules_under_condition<M, YM, F>(
     condition: F,
     working_directory: &'static str,
     module_prural_name: &'static str,
-) -> ResultFuture<Vec<M>>
+) -> ResultFuture<Vec<Arc<M>>>
 where
     M: Module,
     YM: YamlModule<M>,
@@ -107,11 +107,35 @@ where
             .iter()
             .filter(|m| !condition(*m))
             .map(Clone::clone)
-            .collect::<Vec<M>>();
+            .map(|m| Arc::new(m))
+            .collect::<Vec<Arc<M>>>();
 
         Ok(modules)
     })
     .boxed()
+}
+
+pub fn first_module_under_condition<M, YM, F>(
+    condition: F,
+    working_directory: &'static str,
+    module_prural_name: &'static str,
+) -> ResultFuture<Arc<M>>
+where
+    M: Module,
+    YM: YamlModule<M>,
+    F: Fn(&M) -> bool + Send + 'static,
+{
+    modules_under_condition::<_, YM, _>(condition, working_directory, module_prural_name)
+        .and_then(|ms| {
+            future::lazy(move |_| {
+                if let Some(m) = ms.first() {
+                    Ok(m.clone())
+                } else {
+                    Err(ErrorKind::NotFoundModule)?
+                }
+            })
+        })
+        .boxed()
 }
 
 fn yaml_modules_of_working_directory<M, YM>(
@@ -203,6 +227,8 @@ pub enum ErrorKind {
     AlreadyExistModule,
     #[fail(display = "yaml serialize or deserialize error")]
     YamlSerializeOrDeserialize,
+    #[fail(display = "Not Found Module")]
+    NotFoundModule,
 }
 
 pub type ResultFuture<T> =

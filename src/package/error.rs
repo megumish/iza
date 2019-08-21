@@ -63,22 +63,6 @@ impl From<Context<ErrorKind>> for Error {
     }
 }
 
-impl From<std::io::Error> for Error {
-    fn from(error: std::io::Error) -> Self {
-        Error {
-            inner: error.context(ErrorKind::IO),
-        }
-    }
-}
-
-impl From<serde_yaml::Error> for Error {
-    fn from(error: serde_yaml::Error) -> Self {
-        Error {
-            inner: error.context(ErrorKind::YamlSerializeOrDeserialize),
-        }
-    }
-}
-
 impl From<crate::dot_iza::Error> for Error {
     fn from(error: crate::dot_iza::Error) -> Self {
         Error {

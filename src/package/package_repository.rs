@@ -23,7 +23,7 @@ pub trait PackageRepository {
         working_directory: &'static str,
     ) -> ResultFuture<Arc<Package>>;
 
-    fn packages(&self, working_directory: &'static str) -> ResultFuture<Vec<Package>>;
+    fn packages(&self, working_directory: &'static str) -> ResultFuture<Vec<Arc<Package>>>;
 }
 
 pub struct DotIzaPackageRepository;
@@ -57,7 +57,7 @@ impl PackageRepository for DotIzaPackageRepository {
             .boxed()
     }
 
-    fn packages(&self, working_directory: &'static str) -> ResultFuture<Vec<Package>> {
+    fn packages(&self, working_directory: &'static str) -> ResultFuture<Vec<Arc<Package>>> {
         modules_under_condition::<_, YamlPackage, _>(|_| true, working_directory, PRURAL_NAME)
             .map_err(Into::into)
             .boxed()

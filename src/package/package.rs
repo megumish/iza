@@ -17,19 +17,7 @@ impl Package {
         Arc::new(Self::new(name))
     }
 
-    pub fn name_of_package(&self) -> String {
-        self.name.to_string()
-    }
-}
-
-impl Into<(PackageName)> for Package {
-    fn into(self) -> PackageName {
-        self.name
-    }
-}
-
-impl<'a> Into<(PackageName)> for &'a Package {
-    fn into(self) -> PackageName {
+    pub fn name_of_package(&self) -> PackageName {
         self.name.clone()
     }
 }

@@ -1,14 +1,20 @@
 use crate::dot_iza::*;
+use crate::object::*;
+use std::sync::Arc;
 
-#[derive(PartialEq, Clone, Serialize, Deserialize)]
+#[derive(PartialEq, Eq, Clone, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct YamlObject {
     id: String,
     package_id: String,
     object_info_id: String,
 }
 
-impl YamlObject {
-    pub fn new(id: String, package_id: String, object_info_id: String) -> Self {
+impl YamlModule<Object> for YamlObject {
+    fn new_yaml_module(object: Arc<Object>) -> Self {
+        let object: Object = (&*object).clone();
+        let id = object.id_of_object().to_string();
+        let package_id = object.package_id_of_object().to_string();
+        let object_info_id = object.object_info_id_of_object().to_string();
         Self {
             id,
             package_id,
@@ -16,17 +22,11 @@ impl YamlObject {
         }
     }
 
-    pub fn id_of_yaml_object(&self) -> String {
-        self.id.to_string()
-    }
-
-    pub fn package_id_of_yaml_object(&self) -> String {
-        self.package_id.to_string()
-    }
-
-    pub fn object_info_id_of_yaml_object(&self) -> String {
-        self.object_info_id.to_string()
+    fn restore(&self) -> Object {
+        Object::restore(
+            self.id.clone(),
+            self.package_id.clone(),
+            self.object_info_id.clone(),
+        )
     }
 }
-
-impl YamlModule for YamlObject {}
