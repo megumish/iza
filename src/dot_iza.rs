@@ -21,7 +21,7 @@ pub fn init_module_file(
 ) -> ResultFuture<()> {
     future::lazy(move |_| {
         let modules_file_path_buf =
-            modules_file_path_buf_of_working(working_directory, module_prural_name);
+            modules_file_path_buf_of_working_directory(working_directory, module_prural_name);
         let _ = fs::File::create(&modules_file_path_buf)?;
         Ok(())
     })
@@ -38,42 +38,100 @@ where
     YM: YamlModule<M>,
 {
     future::lazy(move |_| {
-        let modules_file_path_buf =
-            modules_file_path_buf_of_working(working_directory, module_prural_name);
+        let mut new_yaml_modules: Vec<YM> =
+            yaml_modules_of_working_directory::<M, YM>(working_directory, module_prural_name)?;
 
-        let new_modules = {
-            let mut input_data = Vec::new();
-            let mut modules_file = fs::File::open(&modules_file_path_buf)?;
-            modules_file.read_to_end(&mut input_data)?;
-            let mut modules: Vec<YM> = if input_data.is_empty() {
-                Vec::new()
-            } else {
-                yaml::from_slice(&input_data)?
-            };
-
-            let new_yaml_module = YM::new_yaml_module(module.clone());
-            match modules.iter().find(|m| *m == &new_yaml_module) {
-                Some(_) => Err(ErrorKind::AlreadyExistModule)?,
-                None => modules.push(new_yaml_module),
-            }
-
-            modules
-        };
-
-        {
-            let mut new_modules = new_modules;
-            new_modules.sort();
-            let output_data = yaml::to_vec(&new_modules)?;
-            let mut modules_file = fs::File::create(&modules_file_path_buf)?;
-            modules_file.write(&output_data)?;
+        let new_yaml_module = YM::new_yaml_module(module.clone());
+        match new_yaml_modules.iter().find(|m| *m == &new_yaml_module) {
+            Some(_) => Err(ErrorKind::AlreadyExistModule)?,
+            None => new_yaml_modules.push(new_yaml_module),
         }
+
+        save_yaml_moduels_of_working_directory::<M, YM>(
+            new_yaml_modules,
+            working_directory,
+            module_prural_name,
+        )?;
 
         Ok(module.clone())
     })
     .boxed()
 }
 
-fn modules_file_path_buf_of_working(
+pub fn delete_module<M, YM>(
+    module: Arc<M>,
+    working_directory: &'static str,
+    module_prural_name: &'static str,
+) -> ResultFuture<Arc<M>>
+where
+    M: Module,
+    YM: YamlModule<M>,
+{
+    future::lazy(move |_| {
+        let new_yaml_modules: Vec<YM> =
+            yaml_modules_of_working_directory::<M, YM>(working_directory, module_prural_name)?;
+
+        let removed_yaml_module = YM::new_yaml_module(module.clone());
+        let new_yaml_modules: Vec<YM> = new_yaml_modules
+            .iter()
+            .filter(|m| *m != &removed_yaml_module)
+            .map(Clone::clone)
+            .collect();
+
+        save_yaml_moduels_of_working_directory::<M, YM>(
+            new_yaml_modules,
+            working_directory,
+            module_prural_name,
+        )?;
+
+        Ok(module.clone())
+    })
+    .boxed()
+}
+
+fn yaml_modules_of_working_directory<M, YM>(
+    working_directory: &str,
+    module_prural_name: &str,
+) -> Result<Vec<YM>, Error>
+where
+    M: Module,
+    YM: YamlModule<M>,
+{
+    let modules_file_path_buf =
+        modules_file_path_buf_of_working_directory(working_directory, module_prural_name);
+
+    let mut input_data = Vec::new();
+    let mut modules_file = fs::File::open(&modules_file_path_buf)?;
+    modules_file.read_to_end(&mut input_data)?;
+    Ok(if input_data.is_empty() {
+        Vec::new()
+    } else {
+        yaml::from_slice(&input_data)?
+    })
+}
+
+fn save_yaml_moduels_of_working_directory<M, YM>(
+    yaml_modules: Vec<YM>,
+    working_directory: &str,
+    module_prural_name: &str,
+) -> Result<(), Error>
+where
+    M: Module,
+    YM: YamlModule<M>,
+{
+    let modules_file_path_buf =
+        modules_file_path_buf_of_working_directory(working_directory, module_prural_name);
+
+    let mut yaml_modules = yaml_modules;
+    yaml_modules.sort();
+
+    let output_data = yaml::to_vec(&yaml_modules)?;
+    let mut modules_file = fs::File::create(&modules_file_path_buf)?;
+    modules_file.write(&output_data)?;
+    Ok(())
+}
+
+fn modules_file_path_buf_of_working_directory(
     working_directory: &str,
     module_prural_name: &str,
 ) -> path::PathBuf {
@@ -89,7 +147,7 @@ fn top_path_buf_of_working_directory(working_directory: &str) -> path::PathBuf {
 }
 
 pub trait Module: Clone + Sync + Send + 'static {}
-pub trait YamlModule<M>: Eq + std::hash::Hash + Serialize + DeserializeOwned + Ord {
+pub trait YamlModule<M>: Eq + std::hash::Hash + Serialize + DeserializeOwned + Ord + Clone {
     fn new_yaml_module(module: Arc<M>) -> Self
     where
         M: Module;
