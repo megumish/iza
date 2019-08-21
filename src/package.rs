@@ -10,8 +10,6 @@ pub use self::package_app_impl::*;
 
 mod package_name;
 mod package_repository;
-mod working_directory;
 
 pub(self) use self::package_name::*;
 pub(self) use self::package_repository::*;
-pub(self) use self::working_directory::*;

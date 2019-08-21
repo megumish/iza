@@ -15,4 +15,8 @@ impl YamlModule<Package> for YamlPackage {
         let name = name.to_string();
         Self { name }
     }
+
+    fn restore(&self) -> Package {
+        Package::new(self.name.clone())
+    }
 }

@@ -89,6 +89,31 @@ where
     .boxed()
 }
 
+pub fn modules_under_condition<M, YM, F>(
+    condition: F,
+    working_directory: &'static str,
+    module_prural_name: &'static str,
+) -> ResultFuture<Vec<M>>
+where
+    M: Module,
+    YM: YamlModule<M>,
+    F: Fn(&M) -> bool + Send + 'static,
+{
+    future::lazy(move |_| {
+        let modules: Vec<M> =
+            modules_of_working_directory::<M, YM>(working_directory, module_prural_name)?;
+
+        let modules = modules
+            .iter()
+            .filter(|m| !condition(*m))
+            .map(Clone::clone)
+            .collect::<Vec<M>>();
+
+        Ok(modules)
+    })
+    .boxed()
+}
+
 fn yaml_modules_of_working_directory<M, YM>(
     working_directory: &str,
     module_prural_name: &str,
@@ -131,6 +156,20 @@ where
     Ok(())
 }
 
+fn modules_of_working_directory<M, YM>(
+    working_directory: &str,
+    module_prural_name: &str,
+) -> Result<Vec<M>, Error>
+where
+    M: Module,
+    YM: YamlModule<M>,
+{
+    let yaml_modules: Vec<YM> =
+        yaml_modules_of_working_directory(working_directory, module_prural_name)?;
+
+    Ok(yaml_modules.iter().map(|m| m.restore()).collect())
+}
+
 fn modules_file_path_buf_of_working_directory(
     working_directory: &str,
     module_prural_name: &str,
@@ -147,10 +186,13 @@ fn top_path_buf_of_working_directory(working_directory: &str) -> path::PathBuf {
 }
 
 pub trait Module: Clone + Sync + Send + 'static {}
-pub trait YamlModule<M>: Eq + std::hash::Hash + Serialize + DeserializeOwned + Ord + Clone {
-    fn new_yaml_module(module: Arc<M>) -> Self
-    where
-        M: Module;
+pub trait YamlModule<M>: Eq + std::hash::Hash + Serialize + DeserializeOwned + Ord + Clone
+where
+    M: Module,
+{
+    fn new_yaml_module(module: Arc<M>) -> Self;
+
+    fn restore(&self) -> M;
 }
 
 #[derive(Fail, Debug)]

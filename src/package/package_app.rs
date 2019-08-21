@@ -1,6 +1,5 @@
 use crate::package::*;
 use futures::prelude::*;
-use std::pin::Pin;
 use std::sync::Arc;
 
 pub trait PackageApp: HasPackageRepository + Sync {
@@ -13,50 +12,25 @@ pub trait PackageApp: HasPackageRepository + Sync {
         name: String,
         working_directory: &'static str,
     ) -> ResultFuture<Arc<Package>> {
-        future::ready(Ok(Package::new_arc(name)))
+        future::lazy(|_| Ok(Package::new_arc(name)))
             .and_then(move |p| self.package_repository().push(p, working_directory))
             .boxed()
     }
 
-    fn packages(
-        &'static self,
-        working_directory: String,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<Package>>>>> {
-        future::ready(
-            self.package_repository()
-                .packages(&working_directory.into()),
-        )
-        .boxed()
-    }
-
-    fn current_package(
-        &'static self,
-        working_directory: String,
-    ) -> Pin<Box<dyn Future<Output = Result<Package>>>> {
-        future::ready(
-            self.package_repository()
-                .current_package(&working_directory.into()),
-        )
-        .boxed()
-    }
-
-    fn switch_current_package(
+    fn delete_package(
         &'static self,
         name: String,
-        working_directory: String,
-    ) -> Pin<Box<dyn Future<Output = Result<()>>>> {
-        let working_directory2 = working_directory.clone();
-        future::ready(
-            self.package_repository()
-                .package_of_name(&name.into(), &working_directory.into()),
-        )
-        .and_then(move |p| {
-            future::ready(
-                self.package_repository()
-                    .set_current_package(&p, &working_directory2.into()),
-            )
-        })
-        .boxed()
+        working_directory: &'static str,
+    ) -> ResultFuture<Arc<Package>> {
+        future::lazy(|_| Ok(Package::new_arc(name)))
+            .and_then(move |p| self.package_repository().delete(p, working_directory))
+            .boxed()
+    }
+
+    fn packages(&'static self, working_directory: &'static str) -> ResultFuture<Vec<Package>> {
+        self.package_repository()
+            .packages(working_directory)
+            .boxed()
     }
 }
 
