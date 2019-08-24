@@ -1,12 +1,12 @@
 mod error;
 mod ssh_connection;
 mod ssh_connection_app;
-// mod ssh_connection_app_impl;
+mod ssh_connection_app_impl;
 
 pub use self::error::*;
 pub use self::ssh_connection::*;
 pub use self::ssh_connection_app::*;
-// pub use self::ssh_connection_app_impl::*;
+pub use self::ssh_connection_app_impl::*;
 
 mod host;
 mod local_path;

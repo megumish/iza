@@ -2,7 +2,7 @@ use crate::dot_iza::*;
 use crate::object::*;
 use std::sync::Arc;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ObjectInfo {
     id: ObjectInfoID,
     local_path: LocalPath,

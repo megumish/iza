@@ -72,6 +72,10 @@ where
             yaml_modules_of_working_directory::<M, YM>(working_directory, module_prural_name)?;
 
         let removed_yaml_module = YM::new_yaml_module(module.clone());
+        match new_yaml_modules.iter().find(|m| *m == &removed_yaml_module) {
+            None => return Err(ErrorKind::NotFoundModule.into()),
+            _ => { /* do nothing */ }
+        };
         let new_yaml_modules: Vec<YM> = new_yaml_modules
             .iter()
             .filter(|m| *m != &removed_yaml_module)
@@ -105,7 +109,7 @@ where
 
         let modules = modules
             .iter()
-            .filter(|m| !condition(*m))
+            .filter(|m| condition(m))
             .map(Clone::clone)
             .map(|m| Arc::new(m))
             .collect::<Vec<Arc<M>>>();

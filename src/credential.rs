@@ -1,12 +1,12 @@
 mod credential;
 mod credential_app;
-// mod credential_app_impl;
+mod credential_app_impl;
 mod credential_as;
 mod error;
 
 pub use self::credential::*;
 pub use self::credential_app::*;
-// pub use self::credential_app_impl::*;
+pub use self::credential_app_impl::*;
 pub use self::credential_as::*;
 pub use self::error::*;
 

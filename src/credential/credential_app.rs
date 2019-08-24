@@ -42,17 +42,20 @@ pub trait CredentialApp: HasCredentialRepository + HasCredentialDistributeServic
     fn credentials(
         &'static self,
         working_directory: &'static str,
-    ) -> ResultFuture<Vec<Arc<HashMap<String, String>>>> {
+    ) -> ResultFuture<(Vec<Arc<Credential>>, Vec<Arc<HashMap<String, String>>>)> {
         self.credential_repository()
             .credentials(&working_directory)
             .and_then(move |cs| {
-                future::try_join_all(cs.iter().map(|c| {
-                    self.credential_distribute_service().credential_details(
-                        c.kind_of_credential(),
-                        c.id_of_credential().to_string(),
-                        working_directory,
-                    )
-                }))
+                future::try_join(
+                    future::ok(cs.clone()),
+                    future::try_join_all(cs.iter().map(|c| {
+                        self.credential_distribute_service().credential_details(
+                            c.kind_of_credential(),
+                            c.id_of_credential().to_string(),
+                            working_directory,
+                        )
+                    })),
+                )
             })
             .boxed()
     }

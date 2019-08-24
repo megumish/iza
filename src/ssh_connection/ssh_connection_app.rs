@@ -39,19 +39,6 @@ pub trait SSHConnectionApp: HasSSHConnectionRepository + HasRemoteFileRepository
             .boxed()
     }
 
-    // fn remove_ssh_connection_of_id(
-    //     &'static self,
-    //     ssh_connection_id: String,
-    //     working_directory: String,
-    // ) -> Pin<Box<dyn Future<Output = Result<()>>>> {
-    //     future::ready(
-    //         self.ssh_connection_repository()
-    //             .ssh_connection_of_id(&ssh_connection_id.into(), &working_directory.into()),
-    //     )
-    //     .and_then(move |s| future::ready(self.ssh_connection_repository().remove(&s)))
-    //     .boxed()
-    // }
-
     fn scp(
         &'static self,
         ssh_connection_id: String,

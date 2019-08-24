@@ -2,7 +2,7 @@ use crate::dot_iza::*;
 use crate::object::*;
 use std::sync::Arc;
 
-#[derive(PartialEq, Eq, Clone, Hash, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct YamlObject {
     id: String,
     package_id: String,
@@ -25,8 +25,8 @@ impl YamlModule<Object> for YamlObject {
     fn restore(&self) -> Object {
         Object::restore(
             self.id.clone(),
-            self.package_id.clone(),
             self.object_info_id.clone(),
+            self.package_id.clone(),
         )
     }
 }
