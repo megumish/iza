@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use crate::ssh_connection::{Error, ResultFuture};
 
-pub trait SSHConnectionApp: HasSSHConnectionRepository + Sync {
+pub trait SSHConnectionApp: HasSSHConnectionRepository + HasRemoteFileRepository + Sync {
     fn init(&'static self, working_directory: &'static str) -> ResultFuture<()> {
         self.ssh_connection_repository()
             .init(working_directory)
@@ -52,35 +52,27 @@ pub trait SSHConnectionApp: HasSSHConnectionRepository + Sync {
     //     .boxed()
     // }
 
-    // fn scp(
-    //     &'static self,
-    //     ssh_connection_id: String,
-    //     local_path: String,
-    //     remote_path: String,
-    //     working_directory: String,
-    // ) -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
-    //     let working_directory2 = working_directory.clone();
-    //     future::ready(
-    //         self.ssh_connection_repository()
-    //             .ssh_connection_of_id(&ssh_connection_id.into(), &working_directory.into()),
-    //     )
-    //     .and_then(move |s| {
-    //         let local_path: LocalPath = local_path.into();
-    //         let remote_path: RemotePath = remote_path.into();
-    //         let user_name: UserName = s.user_name_of_ssh_connection();
-    //         let host_name: HostName = s.host_name_of_ssh_connection();
-    //         future::ready(Ok(RemoteFile::restore(
-    //             user_name,
-    //             host_name,
-    //             local_path,
-    //             remote_path,
-    //         )))
-    //     })
-    //     .and_then(move |r| {
-    //         future::ready(self.remote_file_repository().push(&r, &working_directory2))
-    //     })
-    //     .boxed()
-    // }
+    fn scp(
+        &'static self,
+        ssh_connection_id: String,
+        local_path: String,
+        remote_path: String,
+        working_directory: &'static str,
+    ) -> ResultFuture<()> {
+        self.ssh_connection_repository()
+            .ssh_connection_of_id(Arc::new(ssh_connection_id.into()), working_directory.into())
+            .and_then(move |s| {
+                let local_path: LocalPath = local_path.into();
+                let remote_path: RemotePath = remote_path.into();
+                let user: User = s.user_of_ssh_connection();
+                let host: Host = s.host_of_ssh_connection();
+                future::lazy(|_| Ok(RemoteFile::restore(user, host, local_path, remote_path)))
+            })
+            .and_then(move |r| {
+                future::ready(self.remote_file_repository().push(&r, working_directory))
+            })
+            .boxed()
+    }
 }
 
 pub trait HasSSHConnectionApp {
@@ -89,4 +81,4 @@ pub trait HasSSHConnectionApp {
     fn ssh_connection_app(&self) -> &Self::App;
 }
 
-impl<T> SSHConnectionApp for T where T: HasSSHConnectionRepository + Sync {}
+impl<T> SSHConnectionApp for T where T: HasSSHConnectionRepository + HasRemoteFileRepository + Sync {}

@@ -57,34 +57,26 @@ pub trait CredentialApp: HasCredentialRepository + HasCredentialDistributeServic
             .boxed()
     }
 
-    // fn credentials_of_kind(
-    //     &'static self,
-    //     kind: String,
-    //     working_directory: String,
-    // ) -> Pin<Box<dyn Future<Output = Result<Vec<Credential>>> + Send>> {
-    //     unimplemented!()
-    // }
-
-    // fn deploy_object(
-    //     &'static self,
-    //     id: String,
-    //     local_path: String,
-    //     remote_path: String,
-    //     working_directory: String,
-    // ) -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
-    //     self.credential_repository()
-    //         .credential_of_id(&id.into(), &working_directory)
-    //         .and_then(move |c| {
-    //             self.credential_distribute_service().deploy_object(
-    //                 c.kind_of_credential(),
-    //                 c.id_of_credential(),
-    //                 local_path,
-    //                 remote_path,
-    //                 working_directory,
-    //             )
-    //         })
-    //         .boxed()
-    // }
+    fn deploy_object(
+        &'static self,
+        id: String,
+        local_path: String,
+        remote_path: String,
+        working_directory: &'static str,
+    ) -> ResultFuture<()> {
+        self.credential_repository()
+            .credential_of_id(Arc::new(id.into()), working_directory)
+            .and_then(move |c| {
+                self.credential_distribute_service().deploy_object(
+                    c.kind_of_credential(),
+                    c.id_of_credential(),
+                    local_path,
+                    remote_path,
+                    working_directory,
+                )
+            })
+            .boxed()
+    }
 }
 
 pub trait HasCredentialApp {

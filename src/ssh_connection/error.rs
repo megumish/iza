@@ -7,6 +7,12 @@ pub enum ErrorKind {
     Credential,
     #[fail(display = "not found this ssh connection of id: {:#?}", _0)]
     NotFoundSSHConnection(SSHConnectionID),
+    #[fail(display = "invalid local path")]
+    InvalidLocalPath,
+    #[fail(display = "io error")]
+    IO,
+    #[fail(display = "string error")]
+    Utf8,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -75,6 +81,22 @@ impl From<crate::credential::Error> for Error {
     fn from(error: crate::credential::Error) -> Self {
         Error {
             inner: error.context(ErrorKind::Credential),
+        }
+    }
+}
+
+impl From<std::io::Error> for Error {
+    fn from(error: std::io::Error) -> Self {
+        Error {
+            inner: error.context(ErrorKind::IO),
+        }
+    }
+}
+
+impl From<std::str::Utf8Error> for Error {
+    fn from(error: std::str::Utf8Error) -> Self {
+        Error {
+            inner: error.context(ErrorKind::Utf8),
         }
     }
 }

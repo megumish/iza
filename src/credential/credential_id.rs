@@ -4,7 +4,7 @@ use serde_json as json;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-#[derive(Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct CredentialID {
     id_string: String,
 }

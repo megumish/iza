@@ -1,3 +1,5 @@
+use crate::credential::*;
+
 #[derive(Debug, Fail)]
 pub enum ErrorKind {
     #[fail(display = "invalid credential kind: {}", _0)]
@@ -10,6 +12,8 @@ pub enum ErrorKind {
     SSHConnection,
     #[fail(display = "json serialize or deserialize error")]
     JsonSerializeOrDeserialize,
+    #[fail(display = "not found this credential id: {:#?}", _0)]
+    NotFoundCredential(CredentialID),
 }
 
 impl fmt::Display for NotEnoughInfo {
