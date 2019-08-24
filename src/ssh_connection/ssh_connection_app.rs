@@ -29,32 +29,15 @@ pub trait SSHConnectionApp: HasSSHConnectionRepository + Sync {
             .boxed()
     }
 
-    // fn ssh_connections(
-    //     &'static self,
-    //     working_directory: String,
-    // ) -> Pin<Box<dyn Future<Output = Result<Vec<SSHConnection>>>>> {
-    //     future::ready(
-    //         self.ssh_connection_repository()
-    //             .ssh_connections(&working_directory.into()),
-    //     )
-    //     .boxed()
-    // }
-
-    // fn ssh_connection_of_id(
-    //     &'static self,
-    //     ssh_connection_id: String,
-    //     working_directory: String,
-    // ) -> Pin<Box<dyn Future<Output = Result<Box<dyn CredentialAs + Send>>> + Send>> {
-    //     future::ready(
-    //         self.ssh_connection_repository()
-    //             .ssh_connection_of_id(&ssh_connection_id.into(), &working_directory.into()),
-    //     )
-    //     .and_then(|s| {
-    //         let s: Box<dyn CredentialAs + Send> = Box::new(s);
-    //         future::ready(Ok(s))
-    //     })
-    //     .boxed()
-    // }
+    fn ssh_connection_of_id(
+        &'static self,
+        ssh_connection_id: String,
+        working_directory: &'static str,
+    ) -> ResultFuture<Arc<SSHConnection>> {
+        self.ssh_connection_repository()
+            .ssh_connection_of_id(Arc::new(ssh_connection_id.into()), working_directory)
+            .boxed()
+    }
 
     // fn remove_ssh_connection_of_id(
     //     &'static self,

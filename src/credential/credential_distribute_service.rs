@@ -13,11 +13,12 @@ pub trait CredentialDistributeService: HasSSHConnectionApp + Sync {
         kind: CredentialKind,
         working_directory: &'static str,
     ) -> ResultFuture<()> {
-        use CredentialKind::*;
         match kind {
-            SSHConnection => SSHConnectionApp::init(self.ssh_connection_app(), working_directory)
-                .map_err(Into::into)
-                .boxed(),
+            CredentialKind::SSHConnection => {
+                SSHConnectionApp::init(self.ssh_connection_app(), working_directory)
+                    .map_err(Into::into)
+                    .boxed()
+            }
         }
     }
 
@@ -27,12 +28,27 @@ pub trait CredentialDistributeService: HasSSHConnectionApp + Sync {
         info: Arc<HashMap<String, String>>,
         id: String,
         working_directory: &'static str,
-    ) -> Pin<Box<dyn Future<Output = Result<Arc<HashMap<String, String>>>> + Send>> {
-        use CredentialKind::*;
+    ) -> ResultFuture<Arc<HashMap<String, String>>> {
         match kind {
-            SSHConnection => self
+            CredentialKind::SSHConnection => self
                 .ssh_connection_app()
                 .new_ssh_connection(info, id, working_directory)
+                .map_ok(|s| s.arc_hash_map())
+                .map_err(Into::into)
+                .boxed(),
+        }
+    }
+
+    fn credential_details(
+        &'static self,
+        kind: CredentialKind,
+        id: String,
+        working_directory: &'static str,
+    ) -> ResultFuture<Arc<HashMap<String, String>>> {
+        match kind {
+            CredentialKind::SSHConnection => self
+                .ssh_connection_app()
+                .ssh_connection_of_id(id, working_directory)
                 .map_ok(|s| s.arc_hash_map())
                 .map_err(Into::into)
                 .boxed(),

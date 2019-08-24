@@ -6,7 +6,7 @@ use crate::ssh_connection::*;
 use futures::prelude::*;
 use std::sync::Arc;
 
-use crate::ssh_connection::ResultFuture;
+use crate::ssh_connection::{ErrorKind, ResultFuture};
 
 pub trait SSHConnectionRepository {
     fn init(&self, working_directory: &'static str) -> ResultFuture<()>;
@@ -23,11 +23,11 @@ pub trait SSHConnectionRepository {
         working_directory: &'static str,
     ) -> ResultFuture<Arc<SSHConnection>>;
 
-    fn ssh_connections_of_id(
+    fn ssh_connection_of_id(
         &self,
         package_id: Arc<SSHConnectionID>,
         working_directory: &'static str,
-    ) -> ResultFuture<Vec<Arc<SSHConnection>>>;
+    ) -> ResultFuture<Arc<SSHConnection>>;
 }
 
 pub struct DotIzaSSHConnectionRepository;
@@ -61,17 +61,28 @@ impl SSHConnectionRepository for DotIzaSSHConnectionRepository {
             .boxed()
     }
 
-    fn ssh_connections_of_id(
+    fn ssh_connection_of_id(
         &self,
         id: Arc<SSHConnectionID>,
         working_directory: &'static str,
-    ) -> ResultFuture<Vec<Arc<SSHConnection>>> {
+    ) -> ResultFuture<Arc<SSHConnection>> {
+        let id2 = id.clone();
         modules_under_condition::<_, YamlSSHConnection, _>(
-            move |o| &o.id_of_ssh_connection() == &*id,
+            move |s| &s.id_of_ssh_connection() == &*id,
             working_directory,
             PRURAL_NAME,
         )
         .map_err(Into::into)
+        .and_then(move |ss| {
+            future::lazy(move |_| {
+                if let Some(s) = ss.first() {
+                    Ok(s.clone())
+                } else {
+                    let id: SSHConnectionID = (&*id2).clone();
+                    Err(ErrorKind::NotFoundSSHConnection(id).into())
+                }
+            })
+        })
         .boxed()
     }
 }

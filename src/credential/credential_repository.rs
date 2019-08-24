@@ -23,11 +23,7 @@ pub trait CredentialRepository {
         working_directory: &'static str,
     ) -> ResultFuture<Arc<Credential>>;
 
-    fn credentials_of_id(
-        &self,
-        package_id: Arc<CredentialID>,
-        working_directory: &'static str,
-    ) -> ResultFuture<Vec<Arc<Credential>>>;
+    fn credentials(&self, working_directory: &'static str) -> ResultFuture<Vec<Arc<Credential>>>;
 }
 
 pub struct DotIzaCredentialRepository;
@@ -61,13 +57,9 @@ impl CredentialRepository for DotIzaCredentialRepository {
             .boxed()
     }
 
-    fn credentials_of_id(
-        &self,
-        id: Arc<CredentialID>,
-        working_directory: &'static str,
-    ) -> ResultFuture<Vec<Arc<Credential>>> {
+    fn credentials(&self, working_directory: &'static str) -> ResultFuture<Vec<Arc<Credential>>> {
         modules_under_condition::<_, YamlCredential, _>(
-            move |o| &o.id_of_credential() == &*id,
+            move |_| true,
             working_directory,
             PRURAL_NAME,
         )

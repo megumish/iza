@@ -1,9 +1,12 @@
+use crate::ssh_connection::*;
 #[derive(Debug, Fail)]
 pub enum ErrorKind {
     #[fail(display = "dot iza error")]
     DotIza,
     #[fail(display = "credential error")]
     Credential,
+    #[fail(display = "not found this ssh connection of id: {:#?}", _0)]
+    NotFoundSSHConnection(SSHConnectionID),
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
