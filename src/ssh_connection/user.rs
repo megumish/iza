@@ -1,15 +1,15 @@
 #[derive(Clone)]
-pub struct UserName {
+pub struct User {
     name_string: String,
 }
 
-impl UserName {
+impl User {
     pub fn new(name_string: String) -> Self {
         Self { name_string }
     }
 }
 
-impl ToString for UserName {
+impl ToString for User {
     fn to_string(&self) -> String {
         self.name_string.clone()
     }

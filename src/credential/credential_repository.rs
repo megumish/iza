@@ -4,33 +4,30 @@ use self::yaml_credential::*;
 use crate::credential::*;
 use crate::dot_iza::*;
 use futures::prelude::*;
-use serde_yaml as yaml;
-use std::fs;
-use std::io::prelude::*;
-use std::path;
-use std::pin::Pin;
+use std::sync::Arc;
 
-use crate::credential::{Error, Result};
+use crate::credential::ResultFuture;
 
 pub trait CredentialRepository {
-    fn init(&self, working_directory: &'static str) -> RetFuture<()>;
+    fn init(&self, working_directory: &'static str) -> ResultFuture<()>;
 
     fn push(
         &self,
-        credential: &Credential,
-        working_directory: &str,
-    ) -> Pin<Box<dyn Future<Output = Result<()>> + Send>>;
+        credential: Arc<Credential>,
+        working_directory: &'static str,
+    ) -> ResultFuture<Arc<Credential>>;
 
-    fn credentials(
+    fn delete(
         &self,
-        working_directory: &str,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<Credential>>> + Send>>;
+        credential: Arc<Credential>,
+        working_directory: &'static str,
+    ) -> ResultFuture<Arc<Credential>>;
 
-    fn credential_of_id(
+    fn credentials_of_id(
         &self,
-        id: &CredentialID,
-        working_directory: &str,
-    ) -> Pin<Box<dyn Future<Output = Result<Credential>> + Send>>;
+        package_id: Arc<CredentialID>,
+        working_directory: &'static str,
+    ) -> ResultFuture<Vec<Arc<Credential>>>;
 }
 
 pub struct DotIzaCredentialRepository;
@@ -38,7 +35,7 @@ pub struct DotIzaCredentialRepository;
 const PRURAL_NAME: &'static str = "credentials";
 
 impl CredentialRepository for DotIzaCredentialRepository {
-    fn init(&self, working_directory: &'static str) -> RetFuture<()> {
+    fn init(&self, working_directory: &'static str) -> ResultFuture<()> {
         init_module_file(working_directory, PRURAL_NAME)
             .map_err(Into::into)
             .boxed()
@@ -46,101 +43,35 @@ impl CredentialRepository for DotIzaCredentialRepository {
 
     fn push(
         &self,
-        credential: &Credential,
-        working_directory: &str,
-    ) -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
-        let credential = credential.clone();
-        let working_directory = working_directory.to_owned();
-        future::lazy(move |_| {
-            let id = credential.id_of_credential();
-            let kind = credential.kind_of_credential();
-
-            let credentials_path_buf = {
-                let mut p = path::Path::new(&working_directory).to_path_buf();
-                p.push(".iza");
-                p.push("credential");
-                p.push("credentials");
-                p
-            };
-
-            let new_credentials = {
-                let mut input_data = Vec::new();
-                let mut credentials_file = fs::File::open(&credentials_path_buf)?;
-                credentials_file.read_to_end(&mut input_data)?;
-                let mut credentials: Vec<YamlCredential> = if input_data.is_empty() {
-                    Vec::new()
-                } else {
-                    yaml::from_slice(&input_data)?
-                };
-                match credentials
-                    .iter()
-                    .find(|p| p.id_of_yaml_credential() == id.to_string())
-                {
-                    Some(_) => return Err(Error::AlreadyExistCredential),
-                    None => { /* do nothing */ }
-                }
-                credentials.push(YamlCredential::new(id.to_string(), kind.to_string()));
-                credentials
-            };
-
-            {
-                let output_data = yaml::to_vec(&new_credentials)?;
-                let mut credentials_file = fs::File::create(&credentials_path_buf)?;
-                credentials_file.write(&output_data)?;
-            }
-
-            Ok(())
-        })
-        .boxed()
+        credential: Arc<Credential>,
+        working_directory: &'static str,
+    ) -> ResultFuture<Arc<Credential>> {
+        push_module::<_, YamlCredential>(credential, working_directory, PRURAL_NAME)
+            .map_err(Into::into)
+            .boxed()
     }
 
-    fn credentials(
+    fn delete(
         &self,
-        working_directory: &str,
-    ) -> Pin<Box<dyn Future<Output = Result<Vec<Credential>>> + Send>> {
-        unimplemented!()
+        credential: Arc<Credential>,
+        working_directory: &'static str,
+    ) -> ResultFuture<Arc<Credential>> {
+        delete_module::<_, YamlCredential>(credential, working_directory, PRURAL_NAME)
+            .map_err(Into::into)
+            .boxed()
     }
 
-    fn credential_of_id(
+    fn credentials_of_id(
         &self,
-        credential_id: &CredentialID,
-        working_directory: &str,
-    ) -> Pin<Box<dyn Future<Output = Result<Credential>> + Send>> {
-        let credential_id = credential_id.clone();
-        let working_directory = working_directory.to_owned();
-        future::lazy(move |_| {
-            let working_directory = working_directory.to_string();
-
-            let credentials_path_buf = {
-                let mut p = path::Path::new(&working_directory).to_path_buf();
-                p.push(".iza");
-                p.push("credential");
-                p.push("credentials");
-                p
-            };
-
-            {
-                let mut input_data = Vec::new();
-                let mut credentials_file = fs::File::open(&credentials_path_buf)?;
-                credentials_file.read_to_end(&mut input_data)?;
-                let credentials: Vec<YamlCredential> = if input_data.is_empty() {
-                    Vec::new()
-                } else {
-                    yaml::from_slice(&input_data)?
-                };
-                let target_credential_id = credential_id.to_string();
-                match credentials
-                    .iter()
-                    .find(|p| &p.id_of_yaml_credential() == &target_credential_id)
-                {
-                    Some(p) => Ok(Credential::restore(
-                        p.id_of_yaml_credential(),
-                        p.kind_of_yaml_credential(),
-                    )?),
-                    None => Err(Error::NotFoundCredential),
-                }
-            }
-        })
+        id: Arc<CredentialID>,
+        working_directory: &'static str,
+    ) -> ResultFuture<Vec<Arc<Credential>>> {
+        modules_under_condition::<_, YamlCredential, _>(
+            move |o| &o.id_of_credential() == &*id,
+            working_directory,
+            PRURAL_NAME,
+        )
+        .map_err(Into::into)
         .boxed()
     }
 }
