@@ -17,6 +17,5 @@ mod credential_repository;
 
 pub(self) use self::credential_distribute_service::*;
 pub(self) use self::credential_id::*;
-pub(self) use self::credential_id::*;
 pub(self) use self::credential_kind::*;
 pub(self) use self::credential_repository::*;

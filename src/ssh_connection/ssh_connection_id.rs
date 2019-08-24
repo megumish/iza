@@ -1,4 +1,4 @@
-#[derive(Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct SSHConnectionID {
     id_string: String,
 }

@@ -1,33 +1,28 @@
 use crate::ssh_connection::*;
 
 pub struct RemoteFile {
-    user_name: UserName,
-    host_name: HostName,
+    user: User,
+    host: Host,
     local_path: LocalPath,
     remote_path: RemotePath,
 }
 
 impl RemoteFile {
-    pub fn restore(
-        user_name: UserName,
-        host_name: HostName,
-        local_path: LocalPath,
-        remote_path: RemotePath,
-    ) -> Self {
+    pub fn restore(user: User, host: Host, local_path: LocalPath, remote_path: RemotePath) -> Self {
         Self {
-            user_name,
-            host_name,
+            user,
+            host,
             local_path,
             remote_path,
         }
     }
 
-    pub fn user_name_of_remote_file(&self) -> UserName {
-        self.user_name.clone()
+    pub fn user_of_remote_file(&self) -> User {
+        self.user.clone()
     }
 
-    pub fn host_name_of_remote_file(&self) -> HostName {
-        self.host_name.clone()
+    pub fn host_of_remote_file(&self) -> Host {
+        self.host.clone()
     }
 
     pub fn local_path_of_remote_file(&self) -> LocalPath {

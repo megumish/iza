@@ -3,10 +3,10 @@ use crate::ssh_connection::*;
 pub struct SSHConnectionAppImpl;
 
 impl HasSSHConnectionRepository for SSHConnectionAppImpl {
-    type Repository = SSHConnectionRepositoryDefaultImpl;
+    type Repository = DotIzaSSHConnectionRepository;
 
     fn ssh_connection_repository(&self) -> &Self::Repository {
-        &SSHConnectionRepositoryDefaultImpl
+        &DotIzaSSHConnectionRepository
     }
 }
 

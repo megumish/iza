@@ -1,4 +1,6 @@
+use crate::dot_iza::*;
 use crate::object::*;
+use std::sync::Arc;
 
 #[derive(Clone)]
 pub struct Object {
@@ -8,7 +10,7 @@ pub struct Object {
 }
 
 impl Object {
-    pub fn new(object_info_id: ObjectInfoID, package_id: String) -> Self {
+    fn new(object_info_id: ObjectInfoID, package_id: String) -> Self {
         let id = ObjectID::new();
         let package_id: PackageID = package_id.into();
 
@@ -17,6 +19,10 @@ impl Object {
             package_id,
             object_info_id,
         }
+    }
+
+    pub fn new_arc(object_info_id: ObjectInfoID, package_id: String) -> Arc<Self> {
+        Arc::new(Self::new(object_info_id, package_id))
     }
 
     pub fn restore(id: String, object_info_id: String, package_id: String) -> Self {
@@ -31,15 +37,17 @@ impl Object {
         }
     }
 
-    pub fn id_of_object(&self) -> String {
-        self.id.to_string()
+    pub fn id_of_object(&self) -> ObjectID {
+        self.id.clone()
     }
 
-    pub fn package_id_of_object(&self) -> String {
-        self.package_id.to_string()
+    pub fn package_id_of_object(&self) -> PackageID {
+        self.package_id.clone()
     }
 
-    pub fn object_info_id_of_object(&self) -> String {
-        self.object_info_id.to_string()
+    pub fn object_info_id_of_object(&self) -> ObjectInfoID {
+        self.object_info_id.clone()
     }
 }
+
+impl Module for Object {}

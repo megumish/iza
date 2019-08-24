@@ -4,10 +4,10 @@ use crate::ssh_connection::*;
 pub struct CredentialAppImpl;
 
 impl HasCredentialRepository for CredentialAppImpl {
-    type Repository = CredentialRepositoryDefaultImpl;
+    type Repository = DotIzaCredentialRepository;
 
     fn credential_repository(&self) -> &Self::Repository {
-        &CredentialRepositoryDefaultImpl
+        &DotIzaCredentialRepository
     }
 }
 

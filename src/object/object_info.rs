@@ -1,6 +1,8 @@
+use crate::dot_iza::*;
 use crate::object::*;
+use std::sync::Arc;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ObjectInfo {
     id: ObjectInfoID,
     local_path: LocalPath,
@@ -9,7 +11,7 @@ pub struct ObjectInfo {
 }
 
 impl ObjectInfo {
-    pub fn new(local_path: String, remote_path: String, credential_id: String) -> Self {
+    fn new(local_path: String, remote_path: String, credential_id: String) -> Self {
         let id = ObjectInfoID::new();
         let local_path: LocalPath = local_path.into();
         let remote_path: RemotePath = remote_path.into();
@@ -21,6 +23,10 @@ impl ObjectInfo {
             remote_path,
             credential_id,
         }
+    }
+
+    pub fn new_arc(local_path: String, remote_path: String, credential_id: String) -> Arc<Self> {
+        Arc::new(Self::new(local_path, remote_path, credential_id))
     }
 
     pub fn restore(
@@ -58,3 +64,5 @@ impl ObjectInfo {
         self.credential_id.clone()
     }
 }
+
+impl Module for ObjectInfo {}

@@ -1,14 +1,20 @@
-#[derive(PartialEq, Clone, Serialize, Deserialize)]
+use crate::dot_iza::*;
+use crate::package::*;
+use std::sync::Arc;
+
+#[derive(PartialEq, Eq, Hash, Clone, PartialOrd, Ord, Serialize, Deserialize)]
 pub struct YamlPackage {
     name: String,
 }
 
-impl YamlPackage {
-    pub fn new(name: String) -> Self {
+impl YamlModule<Package> for YamlPackage {
+    fn new_yaml_module(package: Arc<Package>) -> Self {
+        let name: PackageName = (&*package).name_of_package();
+        let name = name.to_string();
         Self { name }
     }
 
-    pub fn name_of_yaml_package(&self) -> String {
-        self.name.to_string()
+    fn restore(&self) -> Package {
+        Package::new(self.name.clone())
     }
 }

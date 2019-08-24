@@ -1,40 +1,30 @@
 #[macro_use]
 extern crate serde;
-#[macro_use]
-extern crate failure;
-#[macro_use]
-extern crate log;
 #[cfg(feature = "exec")]
 #[macro_use]
 extern crate lazy_static;
+#[macro_use]
+extern crate failure;
 
 pub mod credential;
+pub mod dot_iza;
 pub mod object;
 pub mod package;
-pub mod ssh_connection;
-pub mod system_directory;
+
+mod ssh_connection;
 
 #[cfg(feature = "exec")]
 lazy_static! {
     pub static ref SUITE: AppSuite = AppSuite::new();
 }
 
-use crate::{credential::*, object::*, package::*, ssh_connection::*, system_directory::*};
+use crate::{credential::*, object::*, package::*, ssh_connection::*};
 
 pub struct AppSuite {
-    system_directory_app: SystemDirectoryAppImpl,
     package_app: PackageAppImpl,
     credential_app: CredentialAppImpl,
     ssh_connection_app: SSHConnectionAppImpl,
     object_app: ObjectAppImpl,
-}
-
-impl HasSystemDirectoryApp for AppSuite {
-    type App = SystemDirectoryAppImpl;
-
-    fn system_directory_app(&self) -> &Self::App {
-        &self.system_directory_app
-    }
 }
 
 impl HasPackageApp for AppSuite {
@@ -71,13 +61,11 @@ impl HasObjectApp for AppSuite {
 
 impl AppSuite {
     pub fn new() -> Self {
-        let system_directory_app = SystemDirectoryAppImpl;
         let package_app = PackageAppImpl;
         let credential_app = CredentialAppImpl;
         let ssh_connection_app = SSHConnectionAppImpl;
         let object_app = ObjectAppImpl;
         Self {
-            system_directory_app,
             package_app,
             credential_app,
             ssh_connection_app,

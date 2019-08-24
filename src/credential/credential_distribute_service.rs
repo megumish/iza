@@ -3,56 +3,55 @@ use crate::ssh_connection::*;
 use futures::prelude::*;
 use std::collections::HashMap;
 use std::pin::Pin;
+use std::sync::Arc;
 
-use crate::credential::{Error, Result};
+use crate::credential::{ErrorKind, Result, ResultFuture};
 
 pub trait CredentialDistributeService: HasSSHConnectionApp + Sync {
+    fn init(
+        &'static self,
+        kind: CredentialKind,
+        working_directory: &'static str,
+    ) -> ResultFuture<()> {
+        match kind {
+            CredentialKind::SSHConnection => {
+                SSHConnectionApp::init(self.ssh_connection_app(), working_directory)
+                    .map_err(Into::into)
+                    .boxed()
+            }
+        }
+    }
+
     fn new_credential_of_kind(
         &'static self,
         kind: CredentialKind,
-        info: HashMap<String, String>,
-        working_directory: String,
-    ) -> Pin<Box<dyn Future<Output = Result<Box<dyn CredentialAs + Send>>> + Send>> {
-        use CredentialKind::*;
+        info: Arc<HashMap<String, String>>,
+        id: String,
+        working_directory: &'static str,
+    ) -> ResultFuture<Arc<HashMap<String, String>>> {
         match kind {
-            SSHConnection => {
-                let mut not_enough_info = Vec::new();
+            CredentialKind::SSHConnection => self
+                .ssh_connection_app()
+                .new_ssh_connection(info, id, working_directory)
+                .map_ok(|s| s.arc_hash_map())
+                .map_err(Into::into)
+                .boxed(),
+        }
+    }
 
-                let user_name;
-                match info.get("user") {
-                    Some(n) => user_name = Some(n),
-                    None => {
-                        user_name = None;
-                        not_enough_info.push("user".to_owned());
-                    }
-                }
-                let host_name;
-                match info.get("host") {
-                    Some(h) => host_name = Some(h),
-                    None => {
-                        host_name = None;
-                        not_enough_info.push("host".to_owned());
-                    }
-                }
-
-                if !not_enough_info.is_empty() {
-                    return future::ready(Err(Error::NotEnoughInfo(NotEnoughInfo::new(
-                        not_enough_info,
-                    ))))
-                    .boxed();
-                }
-                self.ssh_connection_app()
-                    .new_ssh_connection(
-                        user_name.expect("UserName must be existed").to_owned(),
-                        host_name.expect("HostName must be existed").to_owned(),
-                        working_directory,
-                    )
-                    .map_err(|e| {
-                        eprintln!("{}", e);
-                        Error::OtherAppError
-                    })
-                    .boxed()
-            }
+    fn credential_details(
+        &'static self,
+        kind: CredentialKind,
+        id: String,
+        working_directory: &'static str,
+    ) -> ResultFuture<Arc<HashMap<String, String>>> {
+        match kind {
+            CredentialKind::SSHConnection => self
+                .ssh_connection_app()
+                .ssh_connection_of_id(id, working_directory)
+                .map_ok(|s| s.arc_hash_map())
+                .map_err(Into::into)
+                .boxed(),
         }
     }
 
@@ -62,17 +61,14 @@ pub trait CredentialDistributeService: HasSSHConnectionApp + Sync {
         id: CredentialID,
         local_path: String,
         remote_path: String,
-        working_directory: String,
-    ) -> Pin<Box<dyn Future<Output = Result<()>> + Send>> {
+        working_directory: &'static str,
+    ) -> ResultFuture<()> {
         use CredentialKind::*;
         match kind {
             SSHConnection => self
                 .ssh_connection_app()
                 .scp(id.to_string(), local_path, remote_path, working_directory)
-                .map_err(|e| {
-                    eprintln!("{}", e);
-                    Error::OtherAppError
-                })
+                .map_err(Into::into)
                 .boxed(),
         }
     }
