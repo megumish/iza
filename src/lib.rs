@@ -3,8 +3,6 @@ extern crate serde;
 #[cfg(feature = "exec")]
 #[macro_use]
 extern crate lazy_static;
-#[macro_use]
-extern crate failure;
 
 pub mod credential;
 pub mod dot_iza;

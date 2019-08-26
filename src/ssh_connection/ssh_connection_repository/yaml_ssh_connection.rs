@@ -9,24 +9,6 @@ pub struct YamlSSHConnection {
     host: String,
 }
 
-impl YamlSSHConnection {
-    pub fn new(id: String, user: String, host: String) -> Self {
-        Self { id, user, host }
-    }
-
-    pub fn id_of_yaml_ssh_connection(&self) -> String {
-        self.id.to_string()
-    }
-
-    pub fn user_of_yaml_ssh_connection(&self) -> String {
-        self.user.to_string()
-    }
-
-    pub fn host_of_yaml_ssh_connection(&self) -> String {
-        self.host.to_string()
-    }
-}
-
 impl YamlModule<SSHConnection> for YamlSSHConnection {
     fn new_yaml_module(ssh_connection: Arc<SSHConnection>) -> Self {
         let ssh_connection: SSHConnection = (&*ssh_connection).clone();

@@ -2,10 +2,9 @@ use crate::credential::*;
 use crate::ssh_connection::*;
 use futures::prelude::*;
 use std::collections::HashMap;
-use std::pin::Pin;
 use std::sync::Arc;
 
-use crate::ssh_connection::{Error, ResultFuture};
+use crate::ssh_connection::ResultFuture;
 
 pub trait SSHConnectionApp: HasSSHConnectionRepository + HasRemoteFileRepository + Sync {
     fn init(&'static self, working_directory: &'static str) -> ResultFuture<()> {

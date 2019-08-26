@@ -1,7 +1,6 @@
 use crate::credential::*;
 use crate::dot_iza::*;
 use crate::ssh_connection::*;
-use futures::prelude::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 

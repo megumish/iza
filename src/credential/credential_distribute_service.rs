@@ -2,10 +2,9 @@ use crate::credential::*;
 use crate::ssh_connection::*;
 use futures::prelude::*;
 use std::collections::HashMap;
-use std::pin::Pin;
 use std::sync::Arc;
 
-use crate::credential::{ErrorKind, Result, ResultFuture};
+use crate::credential::ResultFuture;
 
 pub trait CredentialDistributeService: HasSSHConnectionApp + Sync {
     fn init(

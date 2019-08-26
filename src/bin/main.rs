@@ -59,9 +59,6 @@ fn main() -> Result<(), failure::Error> {
     )
     .get_matches();
 
-    env_logger::builder()
-        .filter_level(log::LevelFilter::Debug)
-        .init();
     let current_dir: &'static str = {
         let d = Box::new(
             env::current_dir()?
