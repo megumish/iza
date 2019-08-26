@@ -1,0 +1,36 @@
+@startuml
+title Prepare Deployment
+autonumber
+
+boundary ExecutorApp
+entity Executor
+entity Execution
+database ExecutorRepository
+database ExecutionRepository
+
+box PackageDomain
+    participant ExecutorApp
+    participant Executor
+    participant Execution
+    participant ExecutionRepository
+    participant ExecutorRepository
+end box
+
+--> ExecutorApp : ExecutorName,WorkingDirecotry
+ExecutorApp --> ExecutorRepository : ExecutorName,WorkingDirectory
+ExecutorApp <-- ExecutorRepository : Executor
+note right: Executor of ExecutorName
+ExecutorApp --> Executor : Executor
+alt ExecutorLeaf
+    Executor --> Executor : Vec<Package>
+    Executor --> Execution : Vec<Package>
+    Executor <-- Execution : Vec<Execution>
+    note right: New Executions produced by Packages
+    Executor --> ExecutionRepository : Vec<Execution>
+    Executor <-- ExecutionRepository : Ok(Vec<Execution>)
+    note right: Persist Execution
+end
+ExecutorApp <-- Executor : Ok(Vec<Execution>)
+<-- ExecutorApp : Ok(Vec<Execution>)
+
+@enduml

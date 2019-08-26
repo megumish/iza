@@ -1,0 +1,18 @@
+@startuml
+title Run WordingDaemon
+autonumber
+
+boundary WordingApp
+control WordingDaemonService
+
+box WordingDomain
+    participant WordingApp
+    participant WordingDaemonService
+end box
+
+--> WordingApp : ()
+WordingApp --> WordingDaemonService : ()
+WordingApp <-- WordingDaemonService : Ok(())
+<-- WordingApp : Ok(())
+
+@enduml

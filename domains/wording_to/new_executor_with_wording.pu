@@ -1,0 +1,29 @@
+@startuml
+title New Executor with Wording
+autonumber
+
+boundary WordingApp
+entity Wording
+database ExecutorWordingRepository
+
+boundary ExecutorApp
+
+box WordingDomain
+    participant WordingApp
+    participant Wording
+    participant ExecutorWordingRepository
+end box
+
+box PakcageDomain
+    participant ExecutorApp
+end box
+
+--> WordingApp: ExecutorName,WorkingDirectory
+WordingApp --> ExecutorApp : ExecutorName,WorkingDirectory
+WordingApp <-- ExecutorApp : Ok(Executor)
+note right: New Executor
+WordingApp --> ExecutorWordingRepository : ExecutorName
+WordingApp <-- ExecutorWordingRepository : Ok(())
+<-- WordingApp: Ok(())
+
+@enduml
