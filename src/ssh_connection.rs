@@ -16,7 +16,6 @@ mod remote_path;
 mod ssh_connection_id;
 mod ssh_connection_repository;
 mod user;
-mod working_directory;
 
 pub(self) use self::host::*;
 pub(self) use self::local_path::*;
@@ -26,4 +25,3 @@ pub(self) use self::remote_path::*;
 pub(self) use self::ssh_connection_id::*;
 pub(self) use self::ssh_connection_repository::*;
 pub(self) use self::user::*;
-pub(self) use self::working_directory::*;

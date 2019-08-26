@@ -20,7 +20,7 @@ impl TryFrom<String> for CredentialKind {
 impl ToString for CredentialKind {
     fn to_string(&self) -> String {
         match self {
-            SSHConnection => "SSHConnection".to_owned(),
+            CredentialKind::SSHConnection => "SSHConnection".to_owned(),
         }
     }
 }

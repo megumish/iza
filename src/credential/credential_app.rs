@@ -1,8 +1,6 @@
 use crate::credential::*;
 use futures::prelude::*;
 use std::collections::HashMap;
-use std::convert::TryInto;
-use std::pin::Pin;
 use std::sync::Arc;
 
 pub trait CredentialApp: HasCredentialRepository + HasCredentialDistributeService + Sync {
