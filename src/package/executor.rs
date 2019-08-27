@@ -11,11 +11,18 @@ pub trait ExecutorDetail {
     fn execute(&self) -> ResultFuture<Vec<Arc<Execution>>>;
 }
 
-struct ExecutorLeaf {
-    packages: Vec<Package>,
+pub struct ExecutorLeaf {
+    pub packages: Vec<Package>,
 }
 
 impl Executor {
+    pub fn new(name: ExecutorName) -> Self {
+        let inner = Arc::new(ExecutorLeaf {
+            packages: Vec::new(),
+        });
+        Self { name, inner }
+    }
+
     pub fn execute(&self) -> ResultFuture<Vec<Arc<Execution>>> {
         self.inner.execute()
     }

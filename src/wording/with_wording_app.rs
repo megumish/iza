@@ -5,7 +5,25 @@ use std::sync::Arc;
 
 use crate::wording::ResultFuture;
 
-pub trait WithWordingApp: HasExecutorApp + HasExecutionWordingRepository + Sync {
+pub trait WithWordingApp:
+    HasExecutorApp + HasExecutionWordingRepository + HasExecutorWordingRepository + Sync
+{
+    fn new_executor_with_wording(
+        &'static self,
+        executor_name: String,
+        working_directory: &'static str,
+    ) -> ResultFuture<Arc<ExecutorWording>> {
+        self.executor_app()
+            .new_executor(executor_name, working_directory)
+            .map_err(Into::into)
+            .and_then(|e| {
+                future::ok(Arc::new(ExecutorWording {
+                    executor_name: (&*e).name.to_string().into(),
+                }))
+            })
+            .boxed()
+    }
+
     fn deploy_with_wording(
         &'static self,
         executor_name: String,

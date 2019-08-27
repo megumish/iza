@@ -2,6 +2,8 @@ use crate::package::*;
 use std::sync::Arc;
 
 pub trait ExecutorRepository {
+    fn push(&self, executor: Arc<Executor>) -> ResultFuture<Arc<Executor>>;
+
     fn executor_of_name(
         &self,
         name: ExecutorName,

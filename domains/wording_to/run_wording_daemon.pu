@@ -3,16 +3,16 @@ title Run WordingDaemon
 autonumber
 
 boundary WordingApp
-control WordingDaemonService
+control RunWordingDaemonService
 
 box WordingDomain
     participant WordingApp
-    participant WordingDaemonService
+    participant RunWordingDaemonService
 end box
 
 --> WordingApp : ()
-WordingApp --> WordingDaemonService : ()
-WordingApp <-- WordingDaemonService : Ok(())
+WordingApp --> RunWordingDaemonService : ()
+WordingApp <-- RunWordingDaemonService : Ok(())
 <-- WordingApp : Ok(())
 
 @enduml

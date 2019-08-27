@@ -3,6 +3,18 @@ use futures::prelude::*;
 use std::sync::Arc;
 
 pub trait ExecutorApp: HasExecutorRepository + Sync {
+    fn new_executor<N>(
+        &'static self,
+        executor_name: N,
+        working_directory: &'static str,
+    ) -> ResultFuture<Arc<Executor>>
+    where
+        N: Into<ExecutorName>,
+    {
+        let executor = Arc::new(Executor::new(executor_name.into()));
+        self.executor_repository().push(executor).boxed()
+    }
+
     fn execute(
         &'static self,
         executor_name: String,

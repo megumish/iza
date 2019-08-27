@@ -1,12 +1,5 @@
-#[derive(Clone)]
 pub struct ExecutorName {
     name_string: String,
-}
-
-impl ToString for ExecutorName {
-    fn to_string(&self) -> String {
-        self.name_string.to_owned()
-    }
 }
 
 impl From<String> for ExecutorName {
