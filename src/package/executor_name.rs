@@ -1,4 +1,4 @@
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Debug)]
 pub struct ExecutorName {
     name_string: String,
 }

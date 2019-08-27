@@ -25,3 +25,6 @@ pub(self) use self::executor_name::*;
 pub(self) use self::executor_repository::*;
 pub(self) use self::package_name::*;
 pub(self) use self::package_repository::*;
+
+#[cfg(test)]
+pub mod tests;

@@ -1,4 +1,4 @@
-#[derive(Debug, Fail)]
+#[derive(PartialEq, Debug, Fail)]
 pub enum ErrorKind {
     #[fail(display = "io error")]
     IO,
@@ -6,6 +6,10 @@ pub enum ErrorKind {
     YamlSerializeOrDeserialize,
     #[fail(display = "dot iza error")]
     DotIza,
+    #[fail(display = "not found executor")]
+    NotFoundExecutor,
+    #[fail(display = "already exists executor")]
+    AlreadyExistsExecutor,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

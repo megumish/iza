@@ -7,7 +7,20 @@ pub struct Executor {
     inner: Arc<dyn ExecutorDetail>,
 }
 
-pub trait ExecutorDetail {
+impl PartialEq for Executor {
+    fn eq(&self, another: &Self) -> bool {
+        self.name == another.name
+    }
+}
+
+#[cfg(test)]
+impl std::fmt::Debug for Executor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Executor {{ name: {:#?} }}", self.name)
+    }
+}
+
+pub trait ExecutorDetail: Sync + Send {
     fn execute(&self) -> ResultFuture<Vec<Arc<Execution>>>;
 }
 

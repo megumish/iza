@@ -12,7 +12,9 @@ pub trait ExecutorApp: HasExecutorRepository + Sync {
         N: Into<ExecutorName>,
     {
         let executor = Arc::new(Executor::new(executor_name.into()));
-        self.executor_repository().push(executor).boxed()
+        self.executor_repository()
+            .push(executor, working_directory)
+            .boxed()
     }
 
     fn execute(
@@ -32,3 +34,5 @@ pub trait HasExecutorApp {
 
     fn executor_app(&self) -> &Self::App;
 }
+
+impl<T> ExecutorApp for T where T: HasExecutorRepository + Sync {}
