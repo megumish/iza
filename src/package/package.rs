@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Package {
-    name: PackageName,
+    pub name: PackageName,
 }
 
 impl Package {

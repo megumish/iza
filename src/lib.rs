@@ -8,6 +8,7 @@ pub mod credential;
 pub mod dot_iza;
 pub mod object;
 pub mod package;
+pub mod wording;
 
 mod ssh_connection;
 
