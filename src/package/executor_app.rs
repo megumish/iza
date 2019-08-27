@@ -17,11 +17,14 @@ pub trait ExecutorApp: HasExecutorRepository + Sync {
             .boxed()
     }
 
-    fn execute(
+    fn execute<N>(
         &'static self,
-        executor_name: String,
+        executor_name: N,
         working_directory: &'static str,
-    ) -> ResultFuture<Vec<Arc<Execution>>> {
+    ) -> ResultFuture<Vec<Arc<Execution>>>
+    where
+        N: Into<ExecutorName>,
+    {
         self.executor_repository()
             .executor_of_name(executor_name.into(), working_directory)
             .and_then(|e| e.execute())

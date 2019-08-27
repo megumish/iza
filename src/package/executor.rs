@@ -43,6 +43,7 @@ impl Executor {
 
 impl ExecutorDetail for ExecutorLeaf {
     fn execute(&self) -> ResultFuture<Vec<Arc<Execution>>> {
+        // TODO: push Execution to its repository.
         Execution::new_vec_arc(&self.packages)
     }
 }

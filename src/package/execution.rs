@@ -2,6 +2,7 @@ use crate::package::*;
 use futures::prelude::*;
 use std::sync::Arc;
 
+#[derive(Debug, PartialEq)]
 pub struct Execution {
     pub name: ExecutionName,
 }

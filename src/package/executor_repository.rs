@@ -33,11 +33,14 @@ pub struct InMemoryExecutorDatabase {
 
 #[cfg(test)]
 impl InMemoryExecutorDatabase {
-    fn get_instance(&self) -> Vec<Executor> {
-        self.executors
-            .lock()
-            .expect("Can not get Executors from InMemoryDatabase.")
-            .clone()
+    pub fn new() -> Self {
+        Self {
+            executors: Arc::new(Mutex::new(Vec::new())),
+        }
+    }
+
+    pub fn new_with_initial_data(executors: Arc<Mutex<Vec<Executor>>>) -> Self {
+        Self { executors }
     }
 }
 
@@ -46,7 +49,10 @@ impl ExecutorRepository for InMemoryExecutorDatabase {
     fn push(&self, executor: Arc<Executor>, _: &'static str) -> ResultFuture<Arc<Executor>> {
         {
             let executor = executor.clone();
-            let executors = self.get_instance();
+            let executors = self.executors.clone();
+            let executors = executors
+                .lock()
+                .expect("Can not get Executors from InMemoryDatabase.");
             match executors.iter().find(|e| **e == (&*executor).clone()) {
                 Some(_) => {
                     return future::ready(Err(ErrorKind::AlreadyExistsExecutor.into())).boxed()
@@ -55,14 +61,20 @@ impl ExecutorRepository for InMemoryExecutorDatabase {
             }
         }
         {
-            let mut executors = self.get_instance();
+            let executors = self.executors.clone();
+            let mut executors = executors
+                .lock()
+                .expect("Can not get Executors from InMemoryDatabase.");
             executors.push((&*executor).clone());
             future::ok(executor).boxed()
         }
     }
 
     fn executor_of_name(&self, name: ExecutorName, _: &'static str) -> ResultFuture<Arc<Executor>> {
-        let executors = self.get_instance();
+        let executors = self.executors.clone();
+        let executors = executors
+            .lock()
+            .expect("Can not get Executors from InMemoryDatabase.");
         let mut executors_iter = executors.iter().filter(|e| &e.name == &name);
         let first_executor = executors_iter.next();
         if executors_iter.next().is_some() {
