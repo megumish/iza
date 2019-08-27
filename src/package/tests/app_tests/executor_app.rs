@@ -1,6 +1,22 @@
 use crate::package::*;
 use std::sync::{Arc, Mutex};
 
+impl AppTestSuite {
+    pub fn new() -> Self {
+        Self {
+            in_memory_executor_database: InMemoryExecutorDatabase::new(),
+        }
+    }
+
+    pub fn new_with_initial_data(init_executors: Arc<Mutex<Vec<Executor>>>) -> Self {
+        Self {
+            in_memory_executor_database: InMemoryExecutorDatabase::new_with_initial_data(
+                init_executors,
+            ),
+        }
+    }
+}
+
 pub struct AppTestSuite {
     in_memory_executor_database: InMemoryExecutorDatabase,
 }

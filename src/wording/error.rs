@@ -4,6 +4,8 @@ pub enum ErrorKind {
     DotIza,
     #[fail(display = "package error")]
     Package,
+    #[fail(display = "already exists execution wording")]
+    AlreadyExistsExecutionWording,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

@@ -35,6 +35,7 @@ pub trait WithWordingApp:
             .and_then(|es| {
                 future::try_join_all(es.iter().map(|e| {
                     future::ok(Arc::new(ExecutionWording {
+                        id: (&**e).id.to_string().into(),
                         execution_name: (&**e).name.to_string().into(),
                     }))
                 }))
@@ -47,4 +48,15 @@ pub trait WithWordingApp:
             })
             .boxed()
     }
+}
+
+trait HasWithWordingApp {
+    type App: WithWordingApp;
+
+    fn with_wording_app(&self) -> &Self::App;
+}
+
+impl<T> WithWordingApp for T where
+    T: HasExecutorApp + HasExecutionWordingRepository + HasExecutorWordingRepository + Sync
+{
 }

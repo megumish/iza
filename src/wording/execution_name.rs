@@ -1,3 +1,4 @@
+#[derive(Debug, PartialEq, Clone)]
 pub struct ExecutionName {
     name_string: String,
 }
