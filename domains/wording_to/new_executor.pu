@@ -1,5 +1,5 @@
 @startuml
-title New Executor with Wording
+title New Executor
 autonumber
 
 boundary WordingApp
@@ -22,8 +22,12 @@ end box
 WordingApp --> ExecutorApp : ExecutorName,WorkingDirectory
 WordingApp <-- ExecutorApp : Ok(Executor)
 note right: New Executor
-WordingApp --> ExecutorWordingRepository : ExecutorName
-WordingApp <-- ExecutorWordingRepository : Ok(())
-<-- WordingApp: Ok(())
+WordingApp --> Wording : Executor
+WordingApp <-- Wording : Log
+note right: Generate Log from Executor
+WordingApp --> LogRepository : Log
+WordingApp <-- LogRepository : Ok(Log)
+note right: push Log
+<-- WordingApp: Ok(Log)
 
 @enduml
