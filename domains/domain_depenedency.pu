@@ -1,149 +1,169 @@
 @startuml
 title ドメイン依存関係図
 
-package Kotonoha {
-    component LogDomain
-}
-interface LogApp
-interface KotonohaDaemonApp
-interface KotonohaIntegralApp
-LogApp *-- LogDomain
-KotonohaDaemonApp *-- LogDomain
-KotonohaIntegralApp *-- LogApp
-KotonohaIntegralApp *-- KotonohaDaemonApp
-component LogAppSimpleImpl
-component KotonohaDaemonAppSimpleImpl
-LogAppSimpleImpl *-- LogApp
-KotonohaDaemonAppSimpleImpl *-- KotonohaDaemonApp
-component LogAppTestImpl
-component KotonohaDaemonAppTestImpl
-component KotonohaIntegralAppTestImpl
-LogAppTestImpl *-- LogApp
-KotonohaDaemonAppTestImpl *-- KotonohaDaemonApp
-KotonohaIntegralAppTestImpl *-- KotonohaIntegralApp
-package KotonohaAppTests {
-    component LogAppTest
-    component KotonohaDaemonAppTest
-    component KotonohaIntegralAppTest
+frame Libraries {
 
-    LogAppTest *-- LogAppTestImpl
-    KotonohaDaemonAppTest *-- KotonohaDaemonAppTestImpl
-    KotonohaIntegralAppTest *-- KotonohaIntegralAppTestImpl
-}
-
-package DotIza {
-    component ModuleDomain
-
-    ModuleDomain *-- LogAppSimpleImpl
-}
-interface ModuleApp
-interface DotIzaDaemonApp
-interface DotIzaIntegralApp
-ModuleApp *-- ModuleDomain
-DotIzaDaemonApp *-- ModuleDomain
-DotIzaIntegralApp *-- ModuleApp
-DotIzaIntegralApp *-- DotIzaDaemonApp
-component ModuleAppCurrentWorkingDirectoryImpl
-component DotIzaDaemonAppSimpleImpl
-ModuleAppCurrentWorkingDirectoryImpl *-- ModuleApp
-DotIzaDaemonAppSimpleImpl *-- DotIzaDaemonApp
-component ModuleAppTestImpl
-component DotIzaDaemonAppTestImpl
-component DotIzaIntegralAppTestImpl
-ModuleAppTestImpl *-- ModuleApp
-DotIzaDaemonAppTestImpl *-- DotIzaDaemonApp
-DotIzaIntegralAppTestImpl *-- DotIzaIntegralApp
-package DotIzaAppTests {
-    component ModuleAppTest
-    component DotIzaDaemonAppTest
-    component DotIzaIntegralAppTest
-
-    ModuleAppTest *-- ModuleAppTestImpl
-    DotIzaDaemonAppTest *-- DotIzaDaemonAppTestImpl
-    DotIzaIntegralAppTest *-- DotIzaIntegralAppTestImpl
-}
-
-package MemIza {
-    component InMemoryDomain
-
-    InMemoryDomain *-- LogAppSimpleImpl
-}
-interface InMemoryApp
-interface MemIzaDaemonApp
-interface MemIzaIntegralApp
-InMemoryApp *-- InMemoryDomain
-MemIzaDaemonApp *-- InMemoryDomain
-MemIzaIntegralApp *-- InMemoryApp
-MemIzaIntegralApp *-- MemIzaDaemonApp
-component InMemoryAppSimpleImpl
-component MemIzaDaemonAppSimpleImpl
-InMemoryAppSimpleImpl *-- InMemoryApp
-MemIzaDaemonAppSimpleImpl *-- MemIzaDaemonApp
-component InMemoryAppTestImpl
-component MemIzaDaemonAppTestImpl
-component MemIzaIntegralAppTestImpl
-InMemoryAppTestImpl *-- InMemoryApp
-MemIzaDaemonAppTestImpl *-- MemIzaDaemonApp
-MemIzaIntegralAppTestImpl *-- MemIzaIntegralApp
-package MemIzaDomainTests {
-    component InMemoryAppTest
-    component MemIzaDaemonAppTest
-    component MemIzaIntegralAppTest
-
-    InMemoryAppTest *-- InMemoryAppTestImpl
-    MemIzaDaemonAppTest *-- MemIzaDaemonAppTestImpl
-    MemIzaIntegralAppTest *-- MemIzaIntegralAppTestImpl
-}
-
-package LibIza {
-    component PackageDomain
-    component ResourceDomain
-
-    PackageDomain *-- ResourceDomain
-    PackageDomain *-- ModuleAppCurrentWorkingDirectoryImpl
-    PackageDomain *-- InMemoryAppSimpleImpl
-    PackageDomain *-- LogAppSimpleImpl
-    ResourceDomain *-- ModuleAppCurrentWorkingDirectoryImpl
-    ResourceDomain *-- InMemoryAppSimpleImpl
-    ResourceDomain *-- LogAppSimpleImpl
-}
-interface PackageApp
-interface ResourceApp
-interface LibIzaIntegralApp
-PackageApp *-- PackageDomain
-ResourceApp *-- ResourceDomain
-LibIzaIntegralApp *-- PackageApp
-LibIzaIntegralApp *-- ResourceApp
-component PackageAppExeImpl
-component ResourceAppExeImpl
-PackageAppExeImpl *-- PackageApp
-ResourceAppExeImpl *-- ResourceApp
-component PackageAppTestImpl
-component ResourceAppTestImpl
-component LibIzaIntegralAppTestImpl
-PackageAppTestImpl *-- PackageApp
-ResourceAppTestImpl *-- ResourceApp
-LibIzaIntegralAppTestImpl *-- LibIzaIntegralApp
-package LibIzaAppTests {
-    component PackageAppTest
-    component ResourceAppTest
-    component LibIzaIntegralAppTest
-
-    PackageAppTest *-- PackageAppTestImpl
-    ResourceAppTest *-- ResourceAppTestImpl
-    LibIzaIntegralAppTest *-- LibIzaIntegralAppTestImpl
+    package Kotonoha {
+        cloud KotonohaDaemonDomain
+        cloud LogDomain
+    
+        KotonohaDaemonDomain *-- LogDomain
+    }
+    interface LogApp
+    interface KotonohaDaemonApp
+    interface KotonohaIntegralApp
+    LogApp *-- LogDomain
+    KotonohaDaemonApp *-- KotonohaDaemonDomain
+    KotonohaIntegralApp *-- LogApp
+    KotonohaIntegralApp *-- KotonohaDaemonApp
+    component LogAppSimpleImpl
+    node KotonohaDaemonAppStdoutImpl
+    note top of KotonohaDaemonAppStdoutImpl: Output Log into Stdout Daemon App
+    LogAppSimpleImpl *-- LogApp
+    KotonohaDaemonAppStdoutImpl *-- KotonohaDaemonApp
+    component LogAppTestImpl
+    component KotonohaDaemonAppTestImpl
+    component KotonohaIntegralAppTestImpl
+    LogAppTestImpl *-- LogApp
+    KotonohaDaemonAppTestImpl *-- KotonohaDaemonApp
+    KotonohaIntegralAppTestImpl *-- KotonohaIntegralApp
+    package KotonohaAppTests {
+        component LogAppTest
+        component KotonohaDaemonAppTest
+        component KotonohaIntegralAppTest
+    
+        LogAppTest *-- LogAppTestImpl
+        KotonohaDaemonAppTest *-- KotonohaDaemonAppTestImpl
+        KotonohaIntegralAppTest *-- KotonohaIntegralAppTestImpl
+    }
+    
+    package DotIza {
+        cloud DotIzaDaemonDomain
+        cloud ModuleDomain
+    
+        ModuleDomain *-- LogApp
+        DotIzaDaemonDomain *-- ModuleDomain
+    }
+    interface ModuleApp
+    interface DotIzaDaemonApp
+    interface DotIzaIntegralApp
+    ModuleApp *-- ModuleDomain
+    DotIzaDaemonApp *-- DotIzaDaemonDomain
+    DotIzaIntegralApp *-- ModuleApp
+    DotIzaIntegralApp *-- DotIzaDaemonApp
+    component ModuleAppHashSetImpl
+    node DotIzaDaemonAppLocalYamlFileImpl
+    note top of DotIzaDaemonAppLocalYamlFileImpl: Output Module into Local Yaml File Daemon App
+    ModuleAppHashSetImpl *-- ModuleApp
+    DotIzaDaemonAppLocalYamlFileImpl *-- DotIzaDaemonApp
+    ModuleAppHashSetImpl *-- LogAppSimpleImpl
+    DotIzaDaemonAppLocalYamlFileImpl *-- LogAppSimpleImpl
+    component ModuleAppTestImpl
+    component DotIzaDaemonAppTestImpl
+    component DotIzaIntegralAppTestImpl
+    ModuleAppTestImpl *-- ModuleApp
+    DotIzaDaemonAppTestImpl *-- DotIzaDaemonApp
+    DotIzaIntegralAppTestImpl *-- DotIzaIntegralApp
+    package DotIzaAppTests {
+        component ModuleAppTest
+        component DotIzaDaemonAppTest
+        component DotIzaIntegralAppTest
+    
+        ModuleAppTest *-- ModuleAppTestImpl
+        DotIzaDaemonAppTest *-- DotIzaDaemonAppTestImpl
+        DotIzaIntegralAppTest *-- DotIzaIntegralAppTestImpl
+    }
+    
+    
+    package LibIza {
+        cloud PackageDomain
+        cloud ResourceDomain
+    
+        PackageDomain *-- ResourceDomain
+        PackageDomain *-- ModuleApp
+        PackageDomain *-- LogApp
+        ResourceDomain *-- ModuleApp
+        ResourceDomain *-- LogApp
+    }
+    interface PackageApp
+    interface ResourceApp
+    interface LibIzaIntegralApp
+    PackageApp *-- PackageDomain
+    ResourceApp *-- ResourceDomain
+    LibIzaIntegralApp *-- PackageApp
+    LibIzaIntegralApp *-- ResourceApp
+    node PackageAppExeImpl
+    node ResourceAppExeImpl
+    note top of PackageAppExeImpl: Package App for iza executable
+    note top of ResourceAppExeImpl: Resource App for iza executable
+    PackageAppExeImpl *-- PackageApp
+    ResourceAppExeImpl *-- ResourceApp
+    PackageAppExeImpl *-- ModuleAppHashSetImpl
+    ResourceAppExeImpl *-- ModuleAppHashSetImpl
+    PackageAppExeImpl *-- LogAppSimpleImpl
+    ResourceAppExeImpl *-- LogAppSimpleImpl
+    component PackageAppTestImpl
+    component ResourceAppTestImpl
+    component LibIzaIntegralAppTestImpl
+    PackageAppTestImpl *-- PackageApp
+    ResourceAppTestImpl *-- ResourceApp
+    LibIzaIntegralAppTestImpl *-- LibIzaIntegralApp
+    package LibIzaAppTests {
+        component PackageAppTest
+        component ResourceAppTest
+        component LibIzaIntegralAppTest
+    
+        PackageAppTest *-- PackageAppTestImpl
+        ResourceAppTest *-- ResourceAppTestImpl
+        LibIzaIntegralAppTest *-- LibIzaIntegralAppTestImpl
+    }
 }
 
-component ExeIza
 
-ExeIza *-- PackageAppExeImpl
-ExeIza *-- ResourceAppExeImpl
-ExeIza *-- KotonohaDaemonAppSimpleImpl
-ExeIza *-- DotIzaDaemonAppSimpleImpl
-ExeIza *-- MemIzaDaemonAppSimpleImpl
+frame iza {
+    node iza_package
+    node iza_package_new
+    node iza_package_remove
+    node iza_package_add_command
+    node iza_package_add_file
+    node iza_executor
+    node iza_executor_new
+    node iza_executor_remove
+    node iza_fetcher
+    node iza_fetcher_new
+    node iza_fetcher_remove
+    node iza_shifter
+    node iza_shifter_new
+    node iza_shifter_remove
+    node iza_command
+    node iza_command_new
+    node iza_command_remove
+    node iza_file
+    node iza_file_new
+    node iza_file_remove
+    node iza_deploy
+}
 
-actor shell
-
-shell *-- ExeIza
+note top of iza_package: Show Package List
+note top of iza_package_new: New Package
+note top of iza_package_remove: Remove Package
+note top of iza_package_add_command: Add Command into Package
+note top of iza_package_add_file: Add File into Package
+note top of iza_executor: Show Executor List
+note top of iza_executor_new: New Executor
+note top of iza_executor_remove: Remove Package
+note top of iza_fetcher: Show Fetcher List
+note top of iza_fetcher_new: New Fetcher
+note top of iza_fetcher_remove: Remove Fetcher
+note top of iza_shifter: Show Shifter List
+note top of iza_shifter_new: New Shifter
+note top of iza_shifter_remove: Remove Shifter
+note top of iza_command: Show Command List
+note top of iza_command_new: New Command
+note top of iza_command_remove: Remove Command
+note top of iza_file: Show File List
+note top of iza_file_new: New File
+note top of iza_file_remove: Remove File
+note top of iza_deploy: Iza Deploy
 
 @enduml
