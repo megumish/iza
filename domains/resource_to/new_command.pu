@@ -1,0 +1,56 @@
+@startuml
+title New Command
+autonumber
+
+boundary ResourceApp
+entity Command
+entity CommandInner
+entity CommandStringRaw
+entity CommandString
+database CommandRepository
+database CommandRepositoryInner
+
+box ResourceDomain
+    participant ResourceApp
+    participant Command
+    participant CommandStringRaw
+    participant CommandString
+    participant CommandStringInner
+    participant CommandInner
+    participant ExecutorID
+    participant CommandRepository
+    participant CommandRepositoryInner
+end box
+
+--> ResourceApp : CS,EID
+note right: CS: Into<CommandStringRaw>, EID: Into<ExecutorID>
+ResourceApp --> Command : CS,EID
+group New Command
+    Command --> CommandStringRaw : CS
+    Command <-- CommandStringRaw : CommandStringRaw
+    note right: Into CommandStringRaw
+    Command --> CommandString : CommandStringRaw
+    group Parse CommandStringRaw
+        CommandString --> CommandStringInner : CommandStringRaw
+        CommandString <-- CommandStringInner : Ok(CommandString)
+        note right: Parse CommandStringRaw
+    end
+    Command <-- CommandString : Ok(CommandString)
+    Command --> ExecutorID : EID
+    Command <-- ExecutorID : ExecutorID
+    note right: Into ExecutorID
+    Command --> CommandInner : CommandString, ExecutorID
+    Command <-- CommandInner : Command
+    note right: New Command
+end
+ResourceApp <-- Command : Ok(Command)
+ResourceApp --> CommandRepository : Command
+group Push Command
+    CommandRepository --> CommandRepositoryInner : Command
+    CommandRepository <-- CommandRepositoryInner : Ok(Command)
+    note right: Push Command
+end
+ResourceApp <-- CommandRepository : Ok(Command)
+<-- ResourceApp : Ok(Command)
+
+@enduml

@@ -1,0 +1,39 @@
+@startuml
+title New Package
+autonumber
+
+boundary PackageApp
+entity Package
+entity PackageName
+database PackageRepository
+database PackageRepositoryInner
+
+box PackageDomain
+    participant Package
+    participant PackageName
+    participant PackageRepository
+    participant PackageRepositoryInner
+end box
+
+--> PackageApp : PN
+note right: PN: Into<PackageName>
+PackageApp --> Package : PN
+group New Package
+    Package --> PackageName : PN
+    Package <-- PackageName : PackageName
+    note right: Into PackageName
+    Package --> Package : PackageName
+    Package <-- Package : Package of Name and empty Vec<Resource>
+    note right: New Package
+end
+PackageApp <-- Package : Ok(Package)
+PackageApp --> PackageRepository : Package
+group Push Package
+    PackageRepository --> PackageRepositoryInner : Package
+    PackageRepository <-- PackageRepositoryInner : Ok(Package)
+    note right: Push Package
+end
+PackageApp <-- PackageRepository : Ok(Package)
+<-- PackageApp : Ok(Package)
+
+@enduml

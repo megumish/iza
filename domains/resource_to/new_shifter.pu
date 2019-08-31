@@ -1,0 +1,94 @@
+@startuml
+title New Shifter
+autonumber
+
+boundary ResourceApp
+entity Shifter
+entity ShifterKindRaw
+entity ShifterKind
+entity ShifterMenu
+entity ShifterID
+entity ShifterIDInner
+entity ShifterInner
+database ShifterRepository
+database ShifterRepositoryInner
+control ResourceDistributeService
+entity SSHShifter
+entity SSHShifterInner
+database SSHShifterRepository
+database SSHShifterRepositoryInner
+
+box ResourceDomain
+    participant Shifter
+    participant ShifterKindRaw
+    participant ShifterKind
+    participant ShifterMenu
+    participant ShifterID
+    participant ShifterIDInner
+    participant ShifterInner
+    participant ShifterRepository
+    participant ShifterRepositoryInner
+    participant ResourceDistributeService
+    participant SSHShifter
+    participant SSHShifterInner
+    participant SSHShifterRepository
+    participant SSHShifterRepositoryInner
+end box
+
+--> ResourceApp : FK,FM
+note right: FK: Into<ShifterKindRaw>, FM: Into<ShifterMenu>
+ResourceApp --> Shifter : FK, FM
+group New Shifter
+    Shifter --> ShifterKindRaw : FK
+    Shifter <-- ShifterKindRaw : ShifterKindRaw
+    note right: Into ShifterKindRaw
+    Shifter --> ShifterKind : ShifterKindRaw
+    alt Case "SSHShifter"
+        Shifter <-- ShifterKind : Ok(ShifterKind::SSHShifter)
+    end 
+    note right: Parse ShifterKind
+    Shifter --> ShifterMenu : FM
+    Shifter <-- ShifterMenu : ShifterMenu
+    Shifter --> ShifterID : ShifterKind, ShifterMenu
+    group Generate ShifterID
+        ShifterID --> ShifterIDInner : ShifterKind, ShifterMenu
+        ShifterID <-- ShifterIDInner : ShifterID
+    end
+    Shifter <-- ShifterID : ShifterID
+    Shifter --> ShifterInner : ShifterID, ShifterKind, ShifterMenu
+    Shifter <-- ShifterInner : Shifter
+end
+ResourceApp <-- Shifter : Ok(Shifter)
+ResourceApp --> ShifterRepository : Shifter
+group Push Shifter
+    ShifterRepository --> ShifterRepositoryInner : Shifter.ID
+    ShifterRepository <-- ShifterRepositoryInner : Err(Error::NotFound)
+    note right: Check not Already Exists
+    ShifterRepository --> ShifterRepositoryInner : Shifter
+    ShifterRepository <-- ShifterRepositoryInner : Ok(Shifter)
+    note right: Push Shifter
+end
+ResourceApp <-- ShifterRepository : Ok(Shifter)
+ResourceApp --> ResourceDistributeService : Shifter
+alt Distribute SSHShifter to Push
+    ResourceDistributeService --> SSHShifter : Shifter
+    group New SSHShifter
+        SSHShifter --> SSHShifterInner : Shifter.Menu
+        SSHShifter <-- SSHShifterInner : Ok(SSHShifter)
+    end
+    ResourceDistributeService <-- SSHShifter : Ok(SSHShifter)
+    ResourceDistributeService --> SSHShifterRepository : SSHShifter
+    group Push SSHShifter
+        SSHShifterRepository --> SSHShifterRepositoryInner : SSHShifter.ID
+        SSHShifterRepository <-- SSHShifterRepositoryInner : Err(Error::NotFound)
+        note right: Check not Already Exists
+        SSHShifterRepository --> SSHShifterRepositoryInner : SSHShifter
+        SSHShifterRepository <-- SSHShifterRepositoryInner : Ok(SSHShifter)
+        note right: Push Local Shifter
+    end
+    ResourceDistributeService <-- SSHShifterRepository : Ok(SSHShifter)
+end
+ResourceApp <-- ResourceDistributeService : Ok(SSHShifter)
+<-- ResourceApp : Ok(Shifter)
+
+@enduml

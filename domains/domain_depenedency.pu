@@ -1,0 +1,12 @@
+@startuml
+title ドメイン依存関係図
+
+actor shell
+cloud Package
+cloud Resource
+
+shell *-- Package
+shell *-- Resource
+Package *-- Resource
+
+@enduml

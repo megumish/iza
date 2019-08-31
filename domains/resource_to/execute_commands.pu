@@ -1,0 +1,56 @@
+@startuml
+title Execute Resources Operation
+autonumber
+
+boundary ResourceApp
+database CommandRepository
+entity CommandID
+database CommandRepositoryInner
+entity Command
+entity CommandInner
+entity Execution
+database ExecutionRepository
+database ExecutionRepositoryInner
+
+box ResourceDomain
+    participant CommandRepository
+    participant CommandID
+    participant CommandRepositoryInner
+    participant Command
+    participant CommandInner
+    participant Execution
+    participant ExecutionRepository
+    participant ExecutionRepositoryInner
+end box
+
+--> ResourceApp : Vec<CID>
+note right: CID: Into<CommandID>
+ResourceApp --> CommandRepository : Vec<CID>
+par each Command of CID
+    CommandRepository --> CommandID : CID
+    CommandRepository <-- CommandID : CommandID
+    note right: Into CommandID
+    CommandRepository --> CommandRepositoryInner : CommandID
+    CommandRepository <-- CommandRepositoryInner : Ok(Command)
+    note right: Get Command of ID
+    CommandRepository --> Command : Command
+    group New Execution
+        Command --> CommandInner : Command
+        Command <-- CommandInner : FnOnce() -> Result<()>
+        Command --> Execution : FnOnce() -> Result<()>
+        Command <-- Execution : Ok(Execution)
+        note right: New Execution
+    end
+    CommandRepository <-- Command : Ok(Execution)
+    CommandRepository --> ExecutionRepository : Execution
+    group Execute
+        ExecutionRepository --> ExecutionRepositoryInner : Execution
+        ExecutionRepository <-- ExecutionRepositoryInner : Ok(Execution)
+        note right: Execute
+    end
+    CommandRepository <-- ExecutionRepository : Ok(Execution)
+end
+ResourceApp <-- CommandRepository : Ok(Vec<Execution>)
+<-- ResourceApp : Ok(Vec<Execution>)
+
+@enduml

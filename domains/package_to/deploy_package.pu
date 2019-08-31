@@ -1,0 +1,58 @@
+@startuml
+title Deploy Package
+autonumber
+
+boundary PackageApp
+entity Package
+entity PackageInner
+entity PackageName
+database PackageRepository
+database PackageRepositoryInner
+
+boundary ResourceApp
+
+box PackageDomain
+    participant PackageRepository
+    participant PackageName
+    participant PackageRepositoryInner
+    participant Package
+    participant PackageInner
+end box
+
+box ResourceDomain
+    participant ResourceApp
+end box
+
+--> PackageApp : PN
+note right: PN: Into<PackageName>
+PackageApp --> PackageRepository : PN
+group Get Package
+    PackageRepository --> PackageName : PN
+    PackageRepository <-- PackageName : PackageName
+    note right: Into PackageName
+    PackageRepository --> PackageRepositoryInner : PackageName
+    PackageRepository <-- PackageRepositoryInner : Ok(Package)
+    note right: Get Package of Name
+PackageApp <-- PackageRepository : Ok(Package)
+PackageApp --> Package : Package
+group Package Deploys Resources
+    par Execute Commands of Package
+        Package --> PackageInner : Package
+        Package <-- PackageInner : Vec<CommandID> of Package
+        note right: Get CommandIDs of Package
+        Package --> ResourceApp : Vec<CommandID>
+        Package <-- ResourceApp : Ok(Vec<Execution>)
+        note right: Execute Commands
+    else Shift Files of Package
+        Package --> PackageInner : Package
+        Package <-- PackageInner : Vec<FileID> of Package
+        note right: Get FileIDs of Package
+        Package --> ResourceApp : Vec<FileID>
+        Package <-- ResourceApp : Ok(Vec<Execution>)
+        note right: Shift Files
+    end
+end
+PackageApp <-- Package : Ok(Vec<Execution>)
+<-- PackageApp : Ok(Vec<Execution>)
+
+@enduml

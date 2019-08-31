@@ -1,0 +1,41 @@
+@startuml
+title Add Resource to Package of Name
+autonumber
+
+boundary PackageApp
+database PackageRepository
+entity Package
+entity PackageName
+entity FileID
+database PackageRepositoryInner
+
+box PackageDomain
+    participant PackageRepository
+    participant Package
+    participant PackageName
+    participant FileID
+    participant PackageRepositoryInner
+end box
+
+--> PackageApp : PN,FID
+note right: PN : Into<PackageName>,FID : Into<FID>
+PackageApp --> PackageRepository : PN,FID
+group Add Resource into Package of Name
+    PackageRepository --> PackageName : PN
+    PackageRepository <-- PackageName : PackageName
+    note right: Into PackageName
+    PackageRepository --> FileID : FID
+    PackageRepository <-- FileID : FileID
+    group Add Command into Package of Name
+        PackageRepository --> PackageRepositoryInner : PackageName, FileID
+        PackageRepository <-- PackageRepositoryInner : Err(Error::NotFound)
+        note right: Check not Already Exists
+        PackageRepository --> PackageRepositoryInner : PackageName, FileID
+        PackageRepository <-- PackageRepositoryInner : Ok(Package)
+        note right: Add File into Package of Name
+    end
+end
+PackageApp <-- PackageRepository : Ok(Package)
+<-- PackageApp : Ok(Package)
+
+@enduml
