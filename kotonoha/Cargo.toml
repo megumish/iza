@@ -10,6 +10,8 @@ chrono = "=0.4.8"
 uuid = { version = "=0.7.4", features = ["v4"]}
 
 [features]
-default = ["log"]
+default = ["log", "daemon"]
 
 log = []
+
+daemon = ["log"]

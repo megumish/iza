@@ -9,3 +9,9 @@ impl LogID {
         Self { id_string }
     }
 }
+
+impl std::fmt::Display for LogID {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", &self.id_string)
+    }
+}

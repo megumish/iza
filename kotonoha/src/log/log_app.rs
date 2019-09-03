@@ -1,9 +1,13 @@
 use crate::log::*;
 use futures::prelude::*;
+use std::pin::Pin;
 use std::sync::Arc;
 
 pub trait LogApp: LogRepositoryComponent + Sync {
-    fn push_log<LI>(&'static self, log_info: LI) -> ResultFuture<Arc<Log>>
+    fn push_log<F, LI>(
+        &'static self,
+        log_info: LI,
+    ) -> Pin<Box<dyn Future<Output = Result<Arc<Log>>> + Send>>
     where
         LI: Into<LogInfo>,
     {

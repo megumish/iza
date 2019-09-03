@@ -1,10 +1,12 @@
 mod error;
 mod log;
 mod log_app;
+mod log_event;
 
 pub use self::error::*;
 pub use self::log::*;
 pub use self::log_app::*;
+pub use self::log_event::*;
 
 mod issued_at;
 mod log_id;
