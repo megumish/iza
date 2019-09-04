@@ -4,7 +4,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 pub trait LogApp: LogRepositoryComponent + Sync {
-    fn push_log<F, LI>(
+    fn new_log<F, LI>(
         &'static self,
         log_info: LI,
     ) -> Pin<Box<dyn Future<Output = Result<Arc<Log>>> + Send>>
