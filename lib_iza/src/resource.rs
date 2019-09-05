@@ -46,14 +46,14 @@ pub trait ResourceApp:
     }
 
     /// new Fetcher
-    fn new_fetcher<EK, EM>(
+    fn new_fetcher<FK, FM>(
         &'static self,
-        fetcher_kind_raw: EK,
-        fetcher_menu: EM,
+        fetcher_kind_raw: FK,
+        fetcher_menu: FM,
     ) -> Box<dyn Future<Item = Arc<Fetcher>, Error = Error>>
     where
-        EK: Into<FetcherKindRaw>,
-        EM: Into<FetcherMenu>,
+        FK: Into<FetcherKindRaw>,
+        FM: Into<FetcherMenu>,
     {
         Box::new(
             future::result(Fetcher::try_new(fetcher_kind_raw, fetcher_menu).map(|e| Arc::new(e)))
@@ -108,10 +108,10 @@ impl Executor {
 }
 
 impl Fetcher {
-    fn try_new<EK, EM>(fetcher_kind_raw: EK, fetcher_menu: EM) -> Result<Self, Error>
+    fn try_new<FK, FM>(fetcher_kind_raw: FK, fetcher_menu: FM) -> Result<Self, Error>
     where
-        EK: Into<FetcherKindRaw>,
-        EM: Into<FetcherMenu>,
+        FK: Into<FetcherKindRaw>,
+        FM: Into<FetcherMenu>,
     {
         let kind = fetcher_kind_raw.into().try_parse()?;
         let menu = fetcher_menu.into();
