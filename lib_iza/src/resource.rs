@@ -4,8 +4,28 @@ use std::sync::Arc;
 
 /// Resource App is a interface for library user.
 pub trait ResourceApp:
-    ExecutorRepositoryComponent + ExecutorSortingServiceComponent + CommandRepositoryComponent
+    ExecutorRepositoryComponent
+    + ExecutorSortingServiceComponent
+    + FetcherRepositoryComponent
+    + FetcherSortingServiceComponent
+    + CommandRepositoryComponent
 {
+    /// new Command
+    fn new_command<CS, EID>(
+        &'static self,
+        command_strings_raw: CS,
+        executor_id: EID,
+    ) -> Box<dyn Future<Item = Arc<Command>, Error = Error>>
+    where
+        CS: Into<CommandStringsRaw>,
+        EID: Into<ExecutorID>,
+    {
+        Box::new(
+            future::result(Command::try_new(command_strings_raw, executor_id).map(|c| Arc::new(c)))
+                .and_then(move |c| self.command_repository().push(c)),
+        )
+    }
+
     /// new Executor
     fn new_executor<EK, EM>(
         &'static self,
@@ -25,19 +45,20 @@ pub trait ResourceApp:
         )
     }
 
-    /// new Command
-    fn new_command<CS, EID>(
+    /// new Fetcher
+    fn new_fetcher<EK, EM>(
         &'static self,
-        command_strings_raw: CS,
-        executor_id: EID,
-    ) -> Box<dyn Future<Item = Arc<Command>, Error = Error>>
+        fetcher_kind_raw: EK,
+        fetcher_menu: EM,
+    ) -> Box<dyn Future<Item = Arc<Fetcher>, Error = Error>>
     where
-        CS: Into<CommandStringsRaw>,
-        EID: Into<ExecutorID>,
+        EK: Into<FetcherKindRaw>,
+        EM: Into<FetcherMenu>,
     {
         Box::new(
-            future::result(Command::try_new(command_strings_raw, executor_id).map(|c| Arc::new(c)))
-                .and_then(move |c| self.command_repository().push(c)),
+            future::result(Fetcher::try_new(fetcher_kind_raw, fetcher_menu).map(|e| Arc::new(e)))
+                .and_then(move |e| self.fetcher_repository().push(e))
+                .and_then(move |e| self.fetcher_sorting_service().push(e)),
         )
     }
 }
@@ -47,6 +68,13 @@ pub struct Executor {
     id: ExecutorID,
     kind: ExecutorKind,
     menu: ExecutorMenu,
+}
+
+/// Fetcher fetch a file
+pub struct Fetcher {
+    id: FetcherID,
+    kind: FetcherKind,
+    menu: FetcherMenu,
 }
 
 /// Command is a unit of Execution
@@ -79,6 +107,29 @@ impl Executor {
     }
 }
 
+impl Fetcher {
+    fn try_new<EK, EM>(fetcher_kind_raw: EK, fetcher_menu: EM) -> Result<Self, Error>
+    where
+        EK: Into<FetcherKindRaw>,
+        EM: Into<FetcherMenu>,
+    {
+        let kind = fetcher_kind_raw.into().try_parse()?;
+        let menu = fetcher_menu.into();
+
+        let id = FetcherID::try_new(&kind, &menu)?;
+
+        Ok(Self { id, kind, menu })
+    }
+
+    fn kind_of_fetcher(&self) -> &FetcherKind {
+        &self.kind
+    }
+
+    fn summary_of_fetcher<'a>(&'a self) -> (&'a FetcherID, &'a FetcherMenu) {
+        (&self.id, &self.menu)
+    }
+}
+
 impl Command {
     fn try_new<CS, EID>(command_strings_raw: CS, executor_id: EID) -> Result<Self, Error>
     where
@@ -102,12 +153,18 @@ impl Command {
 pub enum Error {
     /// Invalid Kind of Executor
     InvalidExecutorKind,
+    /// Invalid Kind of Fetcher
+    InvalidFetcherKind,
     /// Failed to generate new ExecutorID
     FailedNewExecutorID,
+    /// Failed to generate new FetcherID
+    FailedNewFetcherID,
     /// Failed to generate new CommandID
     FailedNewCommandID,
     /// Not enough executor menu to generate details
     NotEnoughExecutorMenu(Vec<&'static str>),
+    /// Not enough fetcher menu to generate details
+    NotEnoughFetcherMenu(Vec<&'static str>),
 }
 
 mod command_id;
@@ -120,6 +177,15 @@ mod executor_kind_raw;
 mod executor_menu;
 mod executor_repository;
 mod executor_sorting_service;
+mod fetcher_id;
+mod fetcher_kind;
+mod fetcher_kind_raw;
+mod fetcher_menu;
+mod fetcher_repository;
+mod fetcher_sorting_service;
+mod local_fetcher;
+mod local_fetcher_repository;
+mod local_source;
 mod ssh_executor;
 mod ssh_executor_repository;
 mod ssh_host;
@@ -135,6 +201,15 @@ pub(self) use self::executor_kind_raw::*;
 pub(self) use self::executor_menu::*;
 pub(self) use self::executor_repository::*;
 pub(self) use self::executor_sorting_service::*;
+pub(self) use self::fetcher_id::*;
+pub(self) use self::fetcher_kind::*;
+pub(self) use self::fetcher_kind_raw::*;
+pub(self) use self::fetcher_menu::*;
+pub(self) use self::fetcher_repository::*;
+pub(self) use self::fetcher_sorting_service::*;
+pub(self) use self::local_fetcher::*;
+pub(self) use self::local_fetcher_repository::*;
+pub(self) use self::local_source::*;
 pub(self) use self::ssh_executor::*;
 pub(self) use self::ssh_executor_repository::*;
 pub(self) use self::ssh_host::*;
