@@ -9,3 +9,6 @@ name = "iza"
 path = "src/main.rs"
 
 [dependencies]
+clap = "=2.33"
+futures = "=0.1.28"
+kotonoha = { path = "../kotonoha" }

@@ -1,19 +1,29 @@
-mod error;
-mod log;
-mod log_app;
-mod log_event;
+//! Log is a trait that represent kind of log typed some.
+/// Log is a trait that represent kind of log typed some.
+pub trait Log {
+    /// get log message string
+    fn log_message(&self) -> String;
+}
 
-pub use self::error::*;
-pub use self::log::*;
-pub use self::log_app::*;
-pub use self::log_event::*;
+/// Show log string by a language.
+pub struct OneLanguageSimpleLog {
+    content: &'static str,
+}
 
-mod issued_at;
-mod log_id;
-mod log_info;
-mod log_repository;
+impl OneLanguageSimpleLog {
+    /// constructor
+    pub fn new<S>(content: S) -> Self
+    where
+        S: Into<&'static str>,
+    {
+        Self {
+            content: content.into(),
+        }
+    }
+}
 
-pub(self) use self::issued_at::*;
-pub(self) use self::log_id::*;
-pub(self) use self::log_info::*;
-pub(self) use self::log_repository::*;
+impl Log for OneLanguageSimpleLog {
+    fn log_message(&self) -> String {
+        self.content.to_owned()
+    }
+}
