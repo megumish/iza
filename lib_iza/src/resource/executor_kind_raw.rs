@@ -5,7 +5,7 @@ pub struct ExecutorKindRaw {
 }
 
 impl ExecutorKindRaw {
-    pub fn parse(self) -> Result<ExecutorKind, Error> {
+    pub fn try_parse(self) -> Result<ExecutorKind, Error> {
         match self.raw_string {
             "SSHExecutor" => Ok(ExecutorKind::SSHExecutor),
             _ => Err(Error::InvalidExecutorKind),
