@@ -46,10 +46,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "furoshiki"
-version = "0.1.0"
-
-[[package]]
 name = "futures"
 version = "0.1.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -57,9 +53,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "iza"
 version = "0.1.0"
-dependencies = [
- "futures 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
-]
 
 [[package]]
 name = "kotonoha"
@@ -72,6 +65,10 @@ dependencies = [
 name = "libc"
 version = "0.2.62"
 source = "registry+https://github.com/rust-lang/crates.io-index"
+
+[[package]]
+name = "mikoshi"
+version = "0.1.0"
 
 [[package]]
 name = "strsim"

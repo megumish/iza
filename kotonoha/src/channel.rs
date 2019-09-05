@@ -5,19 +5,24 @@ use std::sync::Arc;
 
 /// Channel is a instance as interface for Library User.
 pub trait Channel {
-    /// LogSender is received logs and then send Channel listner.
-    type LogSender: LogSender;
-
-    /// get LogSender of This Channel
-    fn get_log_sender(&self) -> Self::LogSender;
-}
-
-/// LogSender is received logs and then send Channel listner.
-pub trait LogSender: Clone {
     /// send Log
     fn send<L>(&self, log: L) -> Box<dyn Future<Item = Arc<L>, Error = Error>>
     where
         L: Log + 'static;
+
+    /// run channel
+    fn run(self) -> Box<dyn Future<Item = (), Error = ()>>;
+
+    /// finish channel
+    fn finish(&self) -> Box<dyn Future<Item = (), Error = Error>>;
+}
+
+/// Channel Message
+pub enum Message {
+    /// Message to send channel
+    Sending(Arc<dyn Log>),
+    /// Message to finish channel
+    Finish,
 }
 
 /// Error type about Channel
@@ -26,62 +31,80 @@ pub enum Error {
     FailedToSend,
 }
 
-impl From<mpsc::SendError<Arc<dyn Log>>> for Error {
-    fn from(error: mpsc::SendError<Arc<dyn Log>>) -> Self {
+impl From<mpsc::SendError<Message>> for Error {
+    fn from(error: mpsc::SendError<Message>) -> Self {
         panic!("LogSendError: {:#?}", error)
     }
 }
 
-/// This Channel output to stdout
-pub struct StdoutChannel {
-    log_sender: StdoutLogSender,
+impl From<()> for Error {
+    fn from(_: ()) -> Self {
+        unreachable!()
+    }
 }
 
-/// LogSender of StdoutChannel;
+/// This Channel output to stdout
 #[derive(Clone)]
-pub struct StdoutLogSender {
-    inner: mpsc::Sender<Arc<dyn Log>>,
+pub struct StdoutChannel {
+    log_sender: mpsc::Sender<Message>,
+    log_receiver: Arc<mpsc::Receiver<Message>>,
 }
 
 impl StdoutChannel {
     /// constructor
-    pub fn new() -> impl Future<Item = StdoutLogSender, Error = ()> {
-        let (sender, mut receiver) = mpsc::channel(5);
-        future::ok(Self {
-            log_sender: StdoutLogSender::new(sender),
-        })
-        .join(future::ok(receiver.close()))
-        .and_then(|(c, _)| future::ok(c.get_log_sender()))
-    }
-}
-
-impl StdoutLogSender {
-    /// constructor
-    pub fn new(inner: mpsc::Sender<Arc<dyn Log>>) -> Self {
-        Self { inner }
+    pub fn new() -> Self {
+        let (sender, receiver) = mpsc::channel(5);
+        Self {
+            log_sender: sender,
+            log_receiver: Arc::new(receiver),
+        }
     }
 }
 
 impl Channel for StdoutChannel {
-    type LogSender = StdoutLogSender;
-
-    fn get_log_sender(&self) -> Self::LogSender {
-        self.log_sender.clone()
-    }
-}
-
-impl LogSender for StdoutLogSender {
     fn send<L>(&self, log: L) -> Box<dyn Future<Item = Arc<L>, Error = Error>>
     where
         L: Log + 'static,
     {
         let log = Arc::new(log);
-        let sender = self.inner.clone();
+        let sender = self.log_sender.clone();
         Box::new(
             sender
-                .send(log.clone())
+                .send(Message::Sending(log.clone()))
                 .map_err(Into::into)
                 .and_then(|_| future::ok(log)),
+        )
+    }
+
+    fn run(self) -> Box<dyn Future<Item = (), Error = ()>> {
+        loop {
+            if let Ok(receiver) = Arc::try_unwrap(self.log_receiver.clone()) {
+                break Box::new(
+                    receiver
+                        .take_while(|m| {
+                            future::ok(match m {
+                                Message::Finish => false,
+                                _ => true,
+                            })
+                        })
+                        .for_each(|m| {
+                            future::ok(match m {
+                                Message::Finish => {}
+                                Message::Sending(l) => println!("{}", l.log_message()),
+                            })
+                        }),
+                );
+            }
+        }
+    }
+
+    fn finish(&self) -> Box<dyn Future<Item = (), Error = Error>> {
+        let sender = self.log_sender.clone();
+        Box::new(
+            sender
+                .send(Message::Finish)
+                .map_err(Into::into)
+                .and_then(|_| future::ok(())),
         )
     }
 }

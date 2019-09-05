@@ -1,6 +1,6 @@
 [workspace]
 members = [
-  "furoshiki",
+  "mikoshi",
   "kotonoha",
   "lib_iza",
   "exe_iza",
