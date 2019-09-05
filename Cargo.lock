@@ -42,7 +42,7 @@ version = "0.1.0"
 dependencies = [
  "clap 2.33.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "futures 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
- "kotonoha 0.1.0",
+ "kotonoha 0.2.0",
 ]
 
 [[package]]
@@ -53,10 +53,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 [[package]]
 name = "iza"
 version = "0.1.0"
+dependencies = [
+ "futures 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
+]
 
 [[package]]
 name = "kotonoha"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "futures 0.1.28 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
