@@ -17,6 +17,20 @@ pub trait PackageApp: PackageRepositoryComponent {
                 .and_then(move |p| self.package_repository().push(p)),
         )
     }
+
+    /// add command to package of name
+    fn add_command_to_package_of_name<PN>(
+        &'static self,
+        package_name: PN,
+    ) -> Box<dyn Future<Item = Arc<Package>, Error = Error>>
+    where
+        PN: Into<PackageName>,
+    {
+        Box::new(
+            self.package_repository()
+                .add_command_to_package_of_name(package_name),
+        )
+    }
 }
 
 /// Package is a unit of deployment.
