@@ -1,4 +1,4 @@
-use futures::{executor, future, prelude::*, sync::mpsc};
+use futures::{executor, prelude::*};
 use kotonoha::channel::*;
 use kotonoha::log::OneLanguageSimpleLog as Log;
 

@@ -21,17 +21,6 @@ pub trait LogSender {
     fn send<L>(&self, log: L) -> Box<dyn Future<Item = Arc<L>, Error = Error>>
     where
         L: Log + 'static;
-
-    /// finish channel
-    fn finish(&self) -> Box<dyn Future<Item = (), Error = Error>>;
-}
-
-/// Channel Message
-pub enum Message {
-    /// Message to send channel
-    Sending(Arc<dyn Log>),
-    /// Message to finish channel
-    Finish,
 }
 
 /// Error type about Channel
@@ -40,8 +29,8 @@ pub enum Error {
     FailedToSend,
 }
 
-impl From<mpsc::SendError<Message>> for Error {
-    fn from(error: mpsc::SendError<Message>) -> Self {
+impl From<mpsc::SendError<Arc<dyn Log>>> for Error {
+    fn from(error: mpsc::SendError<Arc<dyn Log>>) -> Self {
         panic!("LogSendError: {:#?}", error)
     }
 }
@@ -54,8 +43,8 @@ impl From<()> for Error {
 
 /// This Channel output to stdout
 pub struct StdoutChannel {
-    log_sender: mpsc::Sender<Message>,
-    log_receiver: mpsc::Receiver<Message>,
+    log_sender: mpsc::Sender<Arc<dyn Log>>,
+    log_receiver: mpsc::Receiver<Arc<dyn Log>>,
 }
 
 impl StdoutChannel {
@@ -70,23 +59,12 @@ impl StdoutChannel {
 }
 
 impl Channel for StdoutChannel {
-    type LogSender = mpsc::Sender<Message>;
+    type LogSender = mpsc::Sender<Arc<dyn Log>>;
 
     fn run(self) -> Box<dyn Future<Item = (), Error = ()>> {
         Box::new(
             self.log_receiver
-                .take_while(|m| {
-                    future::ok(match m {
-                        Message::Finish => false,
-                        _ => true,
-                    })
-                })
-                .for_each(|m| {
-                    future::ok(match m {
-                        Message::Finish => {}
-                        Message::Sending(l) => println!("{}", l.log_message()),
-                    })
-                }),
+                .for_each(|l| future::ok({ println!("{}", l.log_message()) })),
         )
     }
 
@@ -95,7 +73,7 @@ impl Channel for StdoutChannel {
     }
 }
 
-impl LogSender for mpsc::Sender<Message> {
+impl LogSender for mpsc::Sender<Arc<dyn Log>> {
     fn send<L>(&self, log: L) -> Box<dyn Future<Item = Arc<L>, Error = Error>>
     where
         L: Log + 'static,
@@ -104,19 +82,9 @@ impl LogSender for mpsc::Sender<Message> {
         let sender = self.clone();
         Box::new(
             sender
-                .send(Message::Sending(log.clone()))
+                .send(log.clone())
                 .map_err(Into::into)
                 .and_then(|_| future::ok(log)),
-        )
-    }
-
-    fn finish(&self) -> Box<dyn Future<Item = (), Error = Error>> {
-        let sender = self.clone();
-        Box::new(
-            sender
-                .send(Message::Finish)
-                .map_err(Into::into)
-                .and_then(|_| future::ok(())),
         )
     }
 }
