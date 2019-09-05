@@ -62,10 +62,12 @@ impl Channel for StdoutChannel {
     type LogSender = mpsc::Sender<Arc<dyn Log>>;
 
     fn run(self) -> Box<dyn Future<Item = (), Error = ()>> {
-        Box::new(
-            self.log_receiver
-                .for_each(|l| future::ok({ println!("{}", l.log_message()) })),
-        )
+        Box::new(self.log_receiver.for_each(|l| {
+            if let Some(s) = l.log_message() {
+                println!("{}", s)
+            }
+            future::ok(())
+        }))
     }
 
     fn get_sender(&self) -> &Self::LogSender {
