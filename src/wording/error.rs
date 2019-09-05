@@ -1,21 +1,16 @@
-#[derive(PartialEq, Debug, Fail)]
+#[derive(Debug, Fail)]
 pub enum ErrorKind {
-    #[fail(display = "io error")]
-    IO,
-    #[fail(display = "yaml serialize or deserialize error")]
-    YamlSerializeOrDeserialize,
     #[fail(display = "dot iza error")]
     DotIza,
-    #[fail(display = "not found executor")]
-    NotFoundExecutor,
-    #[fail(display = "already exists executor")]
-    AlreadyExistsExecutor,
+    #[fail(display = "package error")]
+    Package,
+    #[fail(display = "already exists execution wording")]
+    AlreadyExistsExecutionWording,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
 pub type ResultFuture<T> =
-    std::pin::Pin<Box<dyn futures::Future<Output = std::result::Result<T, Error>> + Send>>;
-
+    std::pin::Pin<Box<dyn futures::future::Future<Output = Result<T>> + Send>>;
 /* ----------- failure boilerplate ----------- */
 
 use failure::{Backtrace, Context, Fail};
@@ -71,6 +66,14 @@ impl From<crate::dot_iza::Error> for Error {
     fn from(error: crate::dot_iza::Error) -> Self {
         Error {
             inner: error.context(ErrorKind::DotIza),
+        }
+    }
+}
+
+impl From<crate::package::Error> for Error {
+    fn from(error: crate::package::Error) -> Self {
+        Error {
+            inner: error.context(ErrorKind::Package),
         }
     }
 }

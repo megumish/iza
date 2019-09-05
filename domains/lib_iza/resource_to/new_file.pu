@@ -1,0 +1,64 @@
+@startuml
+title New File
+autonumber
+
+boundary ResourceApp
+entity File
+entity FilePathRaw
+entity FilePath
+entity FilePathInner
+entity FetcherID
+entity ShifterID
+entity FileInner
+database FileRepository
+database FileRepositoryInner
+box ResourceDomain
+    participant File
+    participant FilePathRaw
+    participant FilePath
+    participant FilePathInner
+    participant FetcherID
+    participant ShifterID
+    participant FileInner
+    participant FileRepository
+    participant FileRepositoryInner
+end box
+
+--> ResourceApp : FP,FID,SID
+note right: FP: Into<FilePathRaw>, FID: Into<FetcherID>, SID: Into<ShifterID>
+ResourceApp --> File : FP,SID
+group New File
+    File --> FilePathRaw : FP
+    File <-- FilePathRaw : FilePathRaw
+    note right: Into FilePathRaw
+    File --> FilePath : FilePathRaw
+    group Parse FilePathRaw
+        FilePath --> FilePathInner : FilePathRaw
+        FilePath <-- FilePathInner : Ok(FilePath)
+        note right: Parse FilePathRaw
+    end
+    File <-- FilePath : Ok(FilePath)
+    File --> FetcherID : FID
+    File <-- FetcherID : FetcherID
+    note right: Into FetcherID
+    File --> ShifterID : SID
+    File <-- ShifterID : ShifterID
+    note right: Into ShifterID
+    File --> FileInner : FilePath, FetcherID, ShifterID
+    File <-- FileInner : File
+    note right: New File
+end
+ResourceApp <-- File : Ok(File)
+ResourceApp --> FileRepository : File
+group Push File
+    FileRepository --> FileRepositoryInner : File.ID
+    FileRepository <-- FileRepositoryInner : Err(Error::NotFound)
+    note right: Check not Already Exists
+    FileRepository --> FileRepositoryInner : File
+    FileRepository <-- FileRepositoryInner : Ok(File)
+    note right: Push File
+end
+ResourceApp <-- FileRepository : Ok(File)
+<-- ResourceApp : Ok(File)
+
+@enduml

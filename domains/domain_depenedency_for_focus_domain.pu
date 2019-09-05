@@ -1,0 +1,43 @@
+@startuml
+title ドメイン依存関係図
+
+frame Libraries {
+
+    package Kotonoha {
+        cloud KotonohaDaemonDomain
+        cloud LogDomain
+        interface LogPrivateApp
+    
+        KotonohaDaemonDomain *-- LogPrivateApp
+        LogPrivateApp *-- LogDomain
+    }
+    interface LogPublicApp
+    LogPublicApp *-- LogDomain
+    
+    package DotIza {
+        cloud DotIzaDaemonDomain
+        cloud ModuleDomain
+        interface ModulePrivateApp
+    
+        ModuleDomain *-- LogPublicApp
+        DotIzaDaemonDomain *-- ModulePrivateApp
+        ModulePrivateApp *-- ModuleDomain
+    }
+    interface ModulePublicApp
+    ModulePublicApp *-- ModuleDomain
+    
+    package LibIza {
+        cloud PackageDomain
+        cloud ResourceDomain
+        interface ResourcePrivateApp
+    
+        PackageDomain *-- ResourcePrivateApp
+        PackageDomain *-- ModulePublicApp
+        PackageDomain *-- LogPublicApp
+        ResourceDomain *-- ModulePublicApp
+        ResourceDomain *-- LogPublicApp
+        ResourcePrivateApp *-- ResourceDomain
+    }
+}
+
+@enduml

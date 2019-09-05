@@ -1,0 +1,94 @@
+@startuml
+title New Fetcher
+autonumber
+
+boundary ResourceApp
+entity Fetcher
+entity FetcherKindRaw
+entity FetcherKind
+entity FetcherMenu
+entity FetcherID
+entity FetcherIDInner
+entity FetcherInner
+database FetcherRepository
+database FetcherRepositoryInner
+control ResourceDistributeService
+entity LocalFetcher
+entity LocalFetcherInner
+database LocalFetcherRepository
+database LocalFetcherRepositoryInner
+
+box ResourceDomain
+    participant Fetcher
+    participant FetcherKindRaw
+    participant FetcherKind
+    participant FetcherMenu
+    participant FetcherID
+    participant FetcherIDInner
+    participant FetcherInner
+    participant FetcherRepository
+    participant FetcherRepositoryInner
+    participant ResourceDistributeService
+    participant LocalFetcher
+    participant LocalFetcherInner
+    participant LocalFetcherRepository
+    participant LocalFetcherRepositoryInner
+end box
+
+--> ResourceApp : FK,FM
+note right: FK: Into<FetcherKindRaw>, FM: Into<FetcherMenu>
+ResourceApp --> Fetcher : FK, FM
+group New Fetcher
+    Fetcher --> FetcherKindRaw : FK
+    Fetcher <-- FetcherKindRaw : FetcherKindRaw
+    note right: Into FetcherKindRaw
+    Fetcher --> FetcherKind : FetcherKindRaw
+    alt Case "LocalFetcher"
+        Fetcher <-- FetcherKind : Ok(FetcherKind::LocalFetcher)
+    end 
+    note right: Parse FetcherKind
+    Fetcher --> FetcherMenu : FM
+    Fetcher <-- FetcherMenu : FetcherMenu
+    Fetcher --> FetcherID : FetcherKind, FetcherMenu
+    group Generate FetcherID
+        FetcherID --> FetcherIDInner : FetcherKind, FetcherMenu
+        FetcherID <-- FetcherIDInner : FetcherID
+    end
+    Fetcher <-- FetcherID : FetcherID
+    Fetcher --> FetcherInner : FetcherID, FetcherKind, FetcherMenu
+    Fetcher <-- FetcherInner : Fetcher
+end
+ResourceApp <-- Fetcher : Ok(Fetcher)
+ResourceApp --> FetcherRepository : Fetcher
+group Push Fetcher
+    FetcherRepository --> FetcherRepositoryInner : Fetcher.ID
+    FetcherRepository <-- FetcherRepositoryInner : Err(Error::NotFound)
+    note right: Check not Already Exists
+    FetcherRepository --> FetcherRepositoryInner : Fetcher
+    FetcherRepository <-- FetcherRepositoryInner : Ok(Fetcher)
+    note right: Push Fetcher
+end
+ResourceApp <-- FetcherRepository : Ok(Fetcher)
+ResourceApp --> ResourceDistributeService : Fetcher
+alt Distribute LocalFetcher to Push
+    ResourceDistributeService --> LocalFetcher : Fetcher
+    group New LocalFetcher
+        LocalFetcher --> LocalFetcherInner : Fetcher.Menu
+        LocalFetcher <-- LocalFetcherInner : Ok(LocalFetcher)
+    end
+    ResourceDistributeService <-- LocalFetcher : Ok(LocalFetcher)
+    ResourceDistributeService --> LocalFetcherRepository : LocalFetcher
+    group Push LocalFetcher
+        LocalFetcherRepository --> LocalFetcherRepositoryInner : LocalFetcher.ID
+        LocalFetcherRepository <-- LocalFetcherRepositoryInner : Err(Error::NotFound)
+        note right: Check not Already Exists
+        LocalFetcherRepository --> LocalFetcherRepositoryInner : LocalFetcher
+        LocalFetcherRepository <-- LocalFetcherRepositoryInner : Ok(LocalFetcher)
+        note right: Push Local Fetcher
+    end
+    ResourceDistributeService <-- LocalFetcherRepository : Ok(LocalFetcher)
+end
+ResourceApp <-- ResourceDistributeService : Ok(LocalFetcher)
+<-- ResourceApp : Ok(Fetcher)
+
+@enduml

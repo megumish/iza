@@ -1,0 +1,87 @@
+@startuml
+title New Executor
+autonumber
+
+boundary ResourceApp
+entity Executor
+entity ExecutorKindRaw
+entity ExecutorKind
+entity ExecutorMenu
+entity ExecutorID
+entity ExecutorIDInner
+entity ExecutorInner
+database ExecutorRepository
+database ExecutorRepositoryInner
+control ResourceDistributeService
+entity SSHExecutor
+entity SSHExecutorInner
+database SSHExecutorRepository
+database SSHExecutorRepositoryInner
+
+box ResourceDomain
+    participant Executor
+    participant ExecutorKindRaw
+    participant ExecutorKind
+    participant ExecutorMenu
+    participant ExecutorID
+    participant ExecutorIDInner
+    participant ExecutorInner
+    participant ExecutorRepository
+    participant ExecutorRepositoryInner
+    participant ResourceDistributeService
+    participant SSHExecutor
+    participant SSHExecutorInner
+    participant SSHExecutorRepository
+    participant SSHExecutorRepositoryInner
+end box
+
+--> ResourceApp : EK,EM
+note right: EK: Into<ExecutorKindRaw>, EM: Into<ExecutorMenu>
+ResourceApp --> Executor : EK, EM
+group New Executor
+    Executor --> ExecutorKindRaw : EK
+    Executor <-- ExecutorKindRaw : ExecutorKindRaw
+    note right: Into ExecutorKindRaw
+    Executor --> ExecutorKind : ExecutorKindRaw
+    alt Case "SSHExecutor"
+        Executor <-- ExecutorKind : Ok(ExecutorKind::SSHExecutor)
+    end 
+    note right: Parse ExecutorKind
+    Executor --> ExecutorMenu : EM
+    Executor <-- ExecutorMenu : ExecutorMenu
+    Executor --> ExecutorID : ExecutorKind, ExecutorMenu
+    group Generate ExecutorID
+        ExecutorID --> ExecutorIDInner : ExecutorKind, ExecutorMenu
+        ExecutorID <-- ExecutorIDInner : ExecutorID
+    end
+    Executor <-- ExecutorID : ExecutorID
+    Executor --> ExecutorInner : ExecutorID, ExecutorKind, ExecutorMenu
+    Executor <-- ExecutorInner : Executor
+end
+ResourceApp <-- Executor : Ok(Executor)
+ResourceApp --> ExecutorRepository : Executor
+group Push Executor
+    ExecutorRepository --> ExecutorRepositoryInner : Executor
+    ExecutorRepository <-- ExecutorRepositoryInner : Ok(Executor)
+    note right: Push Executor
+end
+ResourceApp <-- ExecutorRepository : Ok(Executor)
+ResourceApp --> ResourceDistributeService : Executor
+alt Distribute SSHExecutor to Push
+    ResourceDistributeService --> SSHExecutor : Executor
+    group New SSHExecutor
+        SSHExecutor --> SSHExecutorInner : Executor.ID, Executor.Menu
+        SSHExecutor <-- SSHExecutorInner : Ok(SSHExecutor)
+    end
+    ResourceDistributeService <-- SSHExecutor : Ok(SSHExecutor)
+    ResourceDistributeService --> SSHExecutorRepository : SSHExecutor
+    group Push SSHExecutor
+        SSHExecutorRepository --> SSHExecutorRepositoryInner : SSHExecutor
+        SSHExecutorRepository <-- SSHExecutorRepositoryInner : Ok(SSHExecutor)
+    end
+    ResourceDistributeService <-- SSHExecutorRepository : Ok(SSHExecutor)
+end
+ResourceApp <-- ResourceDistributeService : Ok(SSHExecutor)
+<-- ResourceApp : Ok(Executor)
+
+@enduml

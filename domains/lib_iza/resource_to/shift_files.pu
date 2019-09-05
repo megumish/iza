@@ -1,0 +1,52 @@
+@startuml
+title Execute Resources Operation
+autonumber
+
+boundary ResourceApp
+database FileRepository
+entity FileID
+database FileRepositoryInner
+entity File
+entity Execution
+database ExecutionRepository
+database ExecutionRepositoryInner
+
+box ResourceDomain
+    participant FileRepository
+    participant FileID
+    participant FileRepositoryInner
+    participant File
+    participant Execution
+    participant ExecutionRepository
+    participant ExecutionRepositoryInner
+end box
+
+--> ResourceApp : Vec<FID>
+note right: FID: Into<FileID>
+ResourceApp --> FileRepository : Vec<FID>
+par each File of FID
+    FileRepository --> FileID : FID
+    FileRepository <-- FileID : FileID
+    note right: Into FileID
+    FileRepository --> FileRepositoryInner : FileID
+    FileRepository <-- FileRepositoryInner : Ok(File)
+    note right: Get File of ID
+    FileRepository --> File : File
+    group New Execution
+        File --> Execution : FnOnce() -> Result<()>
+        File <-- Execution : Ok(Execution)
+        note right: New Execution
+    end
+    FileRepository <-- File : Ok(Execution)
+    FileRepository --> ExecutionRepository : Execution
+    group Execute
+        ExecutionRepository --> ExecutionRepositoryInner : Execution
+        ExecutionRepository <-- ExecutionRepositoryInner : Ok(Execution)
+        note right: Execute
+    end
+    FileRepository <-- ExecutionRepository : Ok(Execution)
+end
+ResourceApp <-- FileRepository : Ok(Vec<Execution>)
+<-- ResourceApp : Ok(Vec<Execution>)
+
+@enduml

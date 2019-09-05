@@ -1,0 +1,14 @@
+[package]
+name = "exe_iza"
+version = "0.1.0"
+authors = ["Keishi Kawada <megumish@exploitouri.st>"]
+edition = "2018"
+
+[[bin]]
+name = "iza"
+path = "src/main.rs"
+
+[dependencies]
+clap = "=2.33"
+futures = "=0.1.28"
+kotonoha = { path = "../kotonoha" }
