@@ -5,14 +5,13 @@ use kotonoha::log::OneLanguageSimpleLog as Log;
 fn main() {
     let channel = StdoutChannel::new();
     let future = {
-        let channel = channel.clone();
-        channel
+        let sender = channel.get_sender();
+        sender
             .send(Log::new("Initialize"))
-            .and_then(move |_| channel.finish())
+            .join(channel.run().map_err(Into::into))
     };
 
     let _ = executor::spawn(future).wait_future();
-    let _ = executor::spawn(channel.run()).wait_future();
 
     // let (sender, mut receiver) = mpsc::channel(5);
 
