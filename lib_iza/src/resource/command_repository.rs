@@ -6,10 +6,12 @@ pub trait CommandRepository {
         command: Arc<Command>,
     ) -> Box<dyn Future<Item = Arc<Command>, Error = Error>>;
 
-    fn commands_of_ids(
+    fn commands_of_ids<CID>(
         &'static self,
         command_ids: Vec<CID>,
-    ) -> Box<dyn Future<Item = Vec<Arc<Command>>, Error = Error>>;
+    ) -> Box<dyn Future<Item = Vec<Arc<Command>>, Error = Error>>
+    where
+        CID: Into<CommandID>;
 }
 
 pub trait CommandRepositoryComponent {

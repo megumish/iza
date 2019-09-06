@@ -210,6 +210,14 @@ impl Command {
             executor_id,
         })
     }
+
+    fn new_execution(self, suite: &'static S) -> Execution
+    where
+        S: ExecutorRepositoryComponent,
+    {
+        // no working bkz Executor is not Trait but Struct
+        executor.new_execution_of_command_strings(command_strings);
+    }
 }
 
 /// Resource Error
@@ -240,6 +248,9 @@ mod command_id;
 mod command_repository;
 mod command_strings;
 mod command_strings_raw;
+mod execute_command_service;
+mod execution;
+mod execution_repository;
 mod executor_id;
 mod executor_kind;
 mod executor_kind_raw;
@@ -273,6 +284,9 @@ pub(self) use self::command_id::*;
 pub(self) use self::command_repository::*;
 pub(self) use self::command_strings::*;
 pub(self) use self::command_strings_raw::*;
+pub(self) use self::execute_command_service::*;
+pub(self) use self::execution::*;
+pub(self) use self::execution_repository::*;
 pub(self) use self::executor_id::*;
 pub(self) use self::executor_kind::*;
 pub(self) use self::executor_kind_raw::*;
