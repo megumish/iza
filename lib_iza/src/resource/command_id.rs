@@ -1,5 +1,6 @@
 use crate::resource::*;
 
+#[derive(Clone)]
 pub struct CommandID {
     id_string: String,
 }

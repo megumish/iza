@@ -3,7 +3,9 @@ use futures::{future, prelude::*};
 use std::sync::Arc;
 
 /// Resource App is a interface for library user.
-pub trait ResourceApp: ExecutorRepositoryComponent + CommandRepositoryComponent {
+pub trait ResourceApp:
+    ExecutorRepositoryComponent + CommandRepositoryComponent + ExecuteCommandServiceComponent
+{
     /// new Command
     fn new_command<CS, EID>(
         &'static self,
@@ -24,7 +26,7 @@ pub trait ResourceApp: ExecutorRepositoryComponent + CommandRepositoryComponent 
     fn execute_command<CID>(
         &'static self,
         command_ids: Vec<CID>,
-    ) -> Box<dyn Future<Item = Vec<Arc<Execution>>, Error = Error>>
+    ) -> Box<dyn Future<Item = Vec<Arc<Execution<Box<dyn FnOnce()>>>>, Error = Error>>
     where
         CID: Into<CommandID>,
     {
@@ -48,15 +50,6 @@ pub trait ResourceApp: ExecutorRepositoryComponent + CommandRepositoryComponent 
                 .and_then(move |e| self.executor_repository().push(e)),
         )
     }
-}
-
-/// Executor execute something for deployment
-pub trait Executor {
-    /// new Executor
-    fn new_executor<ED>(executor_details: ED) -> Result<Self, Error>
-    where
-        ED: Into<ExecutorDetails>,
-        Self: Sized;
 }
 
 macro_rules! matches_executor_details {
@@ -143,8 +136,32 @@ macro_rules! matches_executor_details {
 
 }
 
+/// Executor execute something for deployment
+pub trait Executor {
+    /// new Executor
+    fn new_executor<ED>(executor_details: ED) -> Result<Self, Error>
+    where
+        ED: Into<ExecutorDetails>,
+        Self: Sized;
+
+    /// Executor generate new Execution of CommandStrings
+    fn new_execution_of_command_strings(
+        &self,
+        command_strings: &CommandStrings,
+    ) -> Arc<Execution<Box<dyn FnOnce()>>>;
+}
+
 /// A extension of Executor for command execution
-pub trait CommandExecutor: Executor {}
+pub trait CommandExecutor: Executor {
+    /// Executor generate new Execution of CommandStrings
+    fn new_execution_of_command_strings(
+        &self,
+        command_strings: &CommandStrings,
+    ) -> Arc<Execution<Box<dyn FnOnce()>>>
+where {
+        Executor::new_execution_of_command_strings(self, command_strings)
+    }
+}
 
 /// Kind of Executor for execution by SSH Connection
 pub struct SSHExecutor {
@@ -154,6 +171,7 @@ pub struct SSHExecutor {
 }
 
 /// Command is a unit of Execution
+#[derive(Clone)]
 pub struct Command {
     id: CommandID,
     command_strings: CommandStrings,
@@ -178,12 +196,24 @@ impl Command {
         })
     }
 
-    fn new_execution(self, suite: &'static S) -> Execution
+    fn new_command_execution<S>(
+        self,
+        suite: &S,
+    ) -> Box<dyn Future<Item = Arc<Execution<Box<dyn FnOnce()>>>, Error = Error>>
     where
         S: ExecutorRepositoryComponent,
     {
-        // no working bkz Executor is not Trait but Struct
-        executor.new_execution_of_command_strings(command_strings);
+        Box::new(
+            suite
+                .executor_repository()
+                .command_executor_of_id(&self.executor_id)
+                .and_then(move |ce| {
+                    future::ok(CommandExecutor::new_execution_of_command_strings(
+                        &*ce,
+                        &self.command_strings,
+                    ))
+                }),
+        )
     }
 }
 
