@@ -8,6 +8,8 @@ pub trait ResourceApp:
     + ExecutorSortingServiceComponent
     + FetcherRepositoryComponent
     + FetcherSortingServiceComponent
+    + ShifterRepositoryComponent
+    + ShifterSortingServiceComponent
     + CommandRepositoryComponent
 {
     /// new Command
@@ -61,6 +63,23 @@ pub trait ResourceApp:
                 .and_then(move |e| self.fetcher_sorting_service().push(e)),
         )
     }
+
+    /// new Shifter
+    fn new_shifter<FK, FM>(
+        &'static self,
+        shifter_kind_raw: FK,
+        shifter_menu: FM,
+    ) -> Box<dyn Future<Item = Arc<Shifter>, Error = Error>>
+    where
+        FK: Into<ShifterKindRaw>,
+        FM: Into<ShifterMenu>,
+    {
+        Box::new(
+            future::result(Shifter::try_new(shifter_kind_raw, shifter_menu).map(|e| Arc::new(e)))
+                .and_then(move |e| self.shifter_repository().push(e))
+                .and_then(move |e| self.shifter_sorting_service().push(e)),
+        )
+    }
 }
 
 /// Executor execute a command
@@ -75,6 +94,13 @@ pub struct Fetcher {
     id: FetcherID,
     kind: FetcherKind,
     menu: FetcherMenu,
+}
+
+/// Shifter fetch a file
+pub struct Shifter {
+    id: ShifterID,
+    kind: ShifterKind,
+    menu: ShifterMenu,
 }
 
 /// Command is a unit of Execution
@@ -130,6 +156,29 @@ impl Fetcher {
     }
 }
 
+impl Shifter {
+    fn try_new<FK, FM>(shifter_kind_raw: FK, shifter_menu: FM) -> Result<Self, Error>
+    where
+        FK: Into<ShifterKindRaw>,
+        FM: Into<ShifterMenu>,
+    {
+        let kind = shifter_kind_raw.into().try_parse()?;
+        let menu = shifter_menu.into();
+
+        let id = ShifterID::try_new(&kind, &menu)?;
+
+        Ok(Self { id, kind, menu })
+    }
+
+    fn kind_of_shifter(&self) -> &ShifterKind {
+        &self.kind
+    }
+
+    fn summary_of_shifter<'a>(&'a self) -> (&'a ShifterID, &'a ShifterMenu) {
+        (&self.id, &self.menu)
+    }
+}
+
 impl Command {
     fn try_new<CS, EID>(command_strings_raw: CS, executor_id: EID) -> Result<Self, Error>
     where
@@ -155,16 +204,22 @@ pub enum Error {
     InvalidExecutorKind,
     /// Invalid Kind of Fetcher
     InvalidFetcherKind,
+    /// Invalid Kind of Shifter
+    InvalidShifterKind,
     /// Failed to generate new ExecutorID
     FailedNewExecutorID,
     /// Failed to generate new FetcherID
     FailedNewFetcherID,
+    /// Failed to generate new ShifterID
+    FailedNewShifterID,
     /// Failed to generate new CommandID
     FailedNewCommandID,
     /// Not enough executor menu to generate details
     NotEnoughExecutorMenu(Vec<&'static str>),
     /// Not enough fetcher menu to generate details
     NotEnoughFetcherMenu(Vec<&'static str>),
+    /// Not enough shifter menu to generate details
+    NotEnoughShifterMenu(Vec<&'static str>),
 }
 
 mod command_id;
@@ -186,6 +241,15 @@ mod fetcher_sorting_service;
 mod local_fetcher;
 mod local_fetcher_repository;
 mod local_source;
+mod scp_destination;
+mod scp_shifter;
+mod scp_shifter_repository;
+mod shifter_id;
+mod shifter_kind;
+mod shifter_kind_raw;
+mod shifter_menu;
+mod shifter_repository;
+mod shifter_sorting_service;
 mod ssh_executor;
 mod ssh_executor_repository;
 mod ssh_host;
@@ -210,6 +274,15 @@ pub(self) use self::fetcher_sorting_service::*;
 pub(self) use self::local_fetcher::*;
 pub(self) use self::local_fetcher_repository::*;
 pub(self) use self::local_source::*;
+pub(self) use self::scp_destination::*;
+pub(self) use self::scp_shifter::*;
+pub(self) use self::scp_shifter_repository::*;
+pub(self) use self::shifter_id::*;
+pub(self) use self::shifter_kind::*;
+pub(self) use self::shifter_kind_raw::*;
+pub(self) use self::shifter_menu::*;
+pub(self) use self::shifter_repository::*;
+pub(self) use self::shifter_sorting_service::*;
 pub(self) use self::ssh_executor::*;
 pub(self) use self::ssh_executor_repository::*;
 pub(self) use self::ssh_host::*;
