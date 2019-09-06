@@ -7,3 +7,9 @@ impl SSHUser {
         Self { value }
     }
 }
+
+impl From<String> for SSHUser {
+    fn from(value: String) -> Self {
+        Self { value }
+    }
+}

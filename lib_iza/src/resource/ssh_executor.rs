@@ -1,16 +1,18 @@
 use crate::resource::*;
 
-pub struct SSHExecutor {
-    id: ExecutorID,
-    user: SSHUser,
-    host: SSHHost,
-}
+impl Executor for SSHExecutor {
+    fn new_executor<ED>(ed: ED) -> Result<Self, Error>
+    where
+        ED: Into<ExecutorDetails>,
+        Self: Sized,
+    {
+        let ed = ed.into();
 
-impl SSHExecutor {
-    pub fn try_new((id, menu): (&ExecutorID, &ExecutorMenu)) -> Result<Self, Error> {
-        let (user, host) = menu.parse_ssh_menu()?;
+        let user;
+        let host;
+        matches_executor_details!(ed, user, host);
 
-        let id = (*id).clone();
+        let id = ExecutorID::new();
         Ok(Self { id, user, host })
     }
 }

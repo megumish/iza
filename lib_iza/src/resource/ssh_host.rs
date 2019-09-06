@@ -7,3 +7,9 @@ impl SSHHost {
         Self { value }
     }
 }
+
+impl From<String> for SSHHost {
+    fn from(value: String) -> Self {
+        Self { value }
+    }
+}
