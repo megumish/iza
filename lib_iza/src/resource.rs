@@ -86,6 +86,9 @@ pub trait Executor {
         E: Executor;
 }
 
+/// A extension of Executor for command execution
+pub trait CommandExecutor: Executor {}
+
 /// Fetcher fetch a file
 pub struct Fetcher {
     id: FetcherID,
