@@ -2,10 +2,9 @@ use crate::resource::*;
 use std::sync::Arc;
 
 pub trait ExecutorRepository {
-    fn push(
-        &'static self,
-        executor: Arc<Executor>,
-    ) -> Box<dyn Future<Item = Arc<Executor>, Error = Error>>;
+    fn push<E>(&'static self, executor: Arc<E>) -> Box<dyn Future<Item = Arc<E>, Error = Error>>
+    where
+        E: Executor;
 }
 
 pub trait ExecutorRepositoryComponent {

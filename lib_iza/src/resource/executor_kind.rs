@@ -1,4 +1,4 @@
 #[derive(Serialize)]
-pub enum ExecutorKind {
-    SSHExecutor,
+pub struct ExecutorKind {
+    kind_string: String,
 }

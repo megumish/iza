@@ -5,7 +5,6 @@ use std::sync::Arc;
 /// Resource App is a interface for library user.
 pub trait ResourceApp:
     ExecutorRepositoryComponent
-    + ExecutorSortingServiceComponent
     + FetcherRepositoryComponent
     + FetcherSortingServiceComponent
     + ShifterRepositoryComponent
@@ -29,21 +28,17 @@ pub trait ResourceApp:
     }
 
     /// new Executor
-    fn new_executor<EK, EM>(
+    fn new_executor<E, EM>(
         &'static self,
-        executor_kind_raw: EK,
         executor_menu: EM,
-    ) -> Box<dyn Future<Item = Arc<Executor>, Error = Error>>
+    ) -> Box<dyn Future<Item = Arc<E>, Error = Error>>
     where
-        EK: Into<ExecutorKindRaw>,
+        E: Executor + 'static,
         EM: Into<ExecutorMenu>,
     {
         Box::new(
-            future::result(
-                Executor::try_new(executor_kind_raw, executor_menu).map(|e| Arc::new(e)),
-            )
-            .and_then(move |e| self.executor_repository().push(e))
-            .and_then(move |e| self.executor_sorting_service().push(e)),
+            future::result(new_executor::<E, _>(executor_menu).map(|e| Arc::new(e)))
+                .and_then(move |e| self.executor_repository().push(e)),
         )
     }
 
@@ -83,11 +78,21 @@ pub trait ResourceApp:
 }
 
 /// Executor execute a command
-pub struct Executor {
-    id: ExecutorID,
-    kind: ExecutorKind,
-    menu: ExecutorMenu,
+pub trait Executor {}
+
+fn new_executor<E, EM>(executor_menu: EM) -> Result<E, Error>
+where
+    EM: Into<ExecutorMenu>,
+    E: Executor,
+{
+    unimplemented!()
 }
+
+// pub struct Executor {
+//     id: ExecutorID,
+//     kind: ExecutorKind,
+//     menu: ExecutorMenu,
+// }
 
 /// Fetcher fetch a file
 pub struct Fetcher {
@@ -110,28 +115,28 @@ pub struct Command {
     executor_id: ExecutorID,
 }
 
-impl Executor {
-    fn try_new<EK, EM>(executor_kind_raw: EK, executor_menu: EM) -> Result<Self, Error>
-    where
-        EK: Into<ExecutorKindRaw>,
-        EM: Into<ExecutorMenu>,
-    {
-        let kind = executor_kind_raw.into().try_parse()?;
-        let menu = executor_menu.into();
-
-        let id = ExecutorID::try_new(&kind, &menu)?;
-
-        Ok(Self { id, kind, menu })
-    }
-
-    fn kind_of_executor(&self) -> &ExecutorKind {
-        &self.kind
-    }
-
-    fn summary_of_executor<'a>(&'a self) -> (&'a ExecutorID, &'a ExecutorMenu) {
-        (&self.id, &self.menu)
-    }
-}
+// impl Executor {
+//     fn try_new<EK, EM>(executor_kind_raw: EK, executor_menu: EM) -> Result<Self, Error>
+//     where
+//         EK: Into<ExecutorKindRaw>,
+//         EM: Into<ExecutorMenu>,
+//     {
+//         let kind = executor_kind_raw.into().try_parse()?;
+//         let menu = executor_menu.into();
+//
+//         let id = ExecutorID::try_new(&kind, &menu)?;
+//
+//         Ok(Self { id, kind, menu })
+//     }
+//
+//     fn kind_of_executor(&self) -> &ExecutorKind {
+//         &self.kind
+//     }
+//
+//     fn summary_of_executor<'a>(&'a self) -> (&'a ExecutorID, &'a ExecutorMenu) {
+//         (&self.id, &self.menu)
+//     }
+// }
 
 impl Fetcher {
     fn try_new<FK, FM>(fetcher_kind_raw: FK, fetcher_menu: FM) -> Result<Self, Error>
@@ -228,10 +233,8 @@ mod command_strings;
 mod command_strings_raw;
 mod executor_id;
 mod executor_kind;
-mod executor_kind_raw;
 mod executor_menu;
 mod executor_repository;
-mod executor_sorting_service;
 mod fetcher_id;
 mod fetcher_kind;
 mod fetcher_kind_raw;
@@ -255,16 +258,16 @@ mod ssh_executor_repository;
 mod ssh_host;
 mod ssh_user;
 
+// mod executor_kind_raw;
+
 pub(self) use self::command_id::*;
 pub(self) use self::command_repository::*;
 pub(self) use self::command_strings::*;
 pub(self) use self::command_strings_raw::*;
 pub(self) use self::executor_id::*;
 pub(self) use self::executor_kind::*;
-pub(self) use self::executor_kind_raw::*;
 pub(self) use self::executor_menu::*;
 pub(self) use self::executor_repository::*;
-pub(self) use self::executor_sorting_service::*;
 pub(self) use self::fetcher_id::*;
 pub(self) use self::fetcher_kind::*;
 pub(self) use self::fetcher_kind_raw::*;
@@ -287,3 +290,5 @@ pub(self) use self::ssh_executor::*;
 pub(self) use self::ssh_executor_repository::*;
 pub(self) use self::ssh_host::*;
 pub(self) use self::ssh_user::*;
+
+// pub(self) use self::executor_kind_raw::*;
