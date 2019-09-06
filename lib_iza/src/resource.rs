@@ -28,6 +28,20 @@ pub trait ResourceApp:
         )
     }
 
+    /// execue Command
+    fn execute_command<CID>(
+        &'static self,
+        command_ids: Vec<CID>,
+    ) -> Box<dyn Future<Item = Vec<Arc<Execution>>, Error = Error>>
+    where
+        CID: Into<CommandID>,
+    {
+        Box::new(
+            self.execute_command_service()
+                .execute_commands_of_ids(command_ids),
+        )
+    }
+
     /// new Executor
     fn new_executor<EK, EM>(
         &'static self,
