@@ -7,12 +7,14 @@ pub trait PackageRepository {
         package: Arc<Package>,
     ) -> Box<dyn Future<Item = Arc<Package>, Error = Error>>;
 
-    fn add_command_to_package_of_name<PN>(
+    fn add_command_to_package_of_name<PN, CID>(
         &'static self,
         package_name: PN,
+        command_id: CID,
     ) -> Box<dyn Future<Item = Arc<Package>, Error = Error>>
     where
-        PN: Into<PackageName>;
+        PN: Into<PackageName>,
+        CID: Into<CommandID>;
 }
 
 pub trait PackageRepositoryComponent {
