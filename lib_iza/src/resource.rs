@@ -28,16 +28,16 @@ pub trait ResourceApp:
     }
 
     /// new Executor
-    fn new_executor<E, EM>(
+    fn new_executor<E, ED>(
         &'static self,
-        executor_menu: EM,
+        executor_details: ED,
     ) -> Box<dyn Future<Item = Arc<E>, Error = Error>>
     where
         E: Executor + 'static,
-        EM: Into<ExecutorMenu>,
+        ED: Into<ExecutorDetails>,
     {
         Box::new(
-            future::result(new_executor::<E, _>(executor_menu).map(|e| Arc::new(e)))
+            future::result(new_executor::<E, _>(executor_details).map(|e| Arc::new(e)))
                 .and_then(move |e| self.executor_repository().push(e)),
         )
     }
@@ -80,9 +80,9 @@ pub trait ResourceApp:
 /// Executor execute a command
 pub trait Executor {}
 
-fn new_executor<E, EM>(executor_menu: EM) -> Result<E, Error>
+fn new_executor<E, ED>(executor_details: ED) -> Result<E, Error>
 where
-    EM: Into<ExecutorMenu>,
+    ED: Into<ExecutorDetails>,
     E: Executor,
 {
     unimplemented!()
@@ -219,8 +219,6 @@ pub enum Error {
     FailedNewShifterID,
     /// Failed to generate new CommandID
     FailedNewCommandID,
-    /// Not enough executor menu to generate details
-    NotEnoughExecutorMenu(Vec<&'static str>),
     /// Not enough fetcher menu to generate details
     NotEnoughFetcherMenu(Vec<&'static str>),
     /// Not enough shifter menu to generate details
@@ -231,9 +229,9 @@ mod command_id;
 mod command_repository;
 mod command_strings;
 mod command_strings_raw;
+mod executor_details;
 mod executor_id;
 mod executor_kind;
-mod executor_menu;
 mod executor_repository;
 mod fetcher_id;
 mod fetcher_kind;
@@ -264,9 +262,9 @@ pub(self) use self::command_id::*;
 pub(self) use self::command_repository::*;
 pub(self) use self::command_strings::*;
 pub(self) use self::command_strings_raw::*;
+pub(self) use self::executor_details::*;
 pub(self) use self::executor_id::*;
 pub(self) use self::executor_kind::*;
-pub(self) use self::executor_menu::*;
 pub(self) use self::executor_repository::*;
 pub(self) use self::fetcher_id::*;
 pub(self) use self::fetcher_kind::*;

@@ -5,12 +5,3 @@ pub struct SSHExecutor {
     user: SSHUser,
     host: SSHHost,
 }
-
-impl SSHExecutor {
-    pub fn try_new((id, menu): (&ExecutorID, &ExecutorMenu)) -> Result<Self, Error> {
-        let (user, host) = menu.parse_ssh_menu()?;
-
-        let id = (*id).clone();
-        Ok(Self { id, user, host })
-    }
-}
