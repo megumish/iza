@@ -39,14 +39,105 @@ pub trait ResourceApp: ExecutorRepositoryComponent + CommandRepositoryComponent 
 /// Executor execute something for deployment
 pub trait Executor {
     /// new Executor
-    fn new_executor<E, ED>(executor_details: ED) -> Result<E, Error>
+    fn new_executor<ED>(executor_details: ED) -> Result<Self, Error>
     where
         ED: Into<ExecutorDetails>,
-        E: Executor;
+        Self: Sized;
+}
+
+macro_rules! matches_executor_details {
+    (
+        $executor_details:ident,
+        $($remain_detail_var:ident),*
+    ) => {
+        matches_executor_details!
+        (
+            =>
+            ;$executor_details
+            ;$($remain_detail_var)*
+        )
+    };
+
+    (
+        =>$($not_exist_detail:expr)+
+        ;$executor_details:expr
+        ;$detail_var:ident
+        $($remain_detail_var:ident)*
+    ) => {
+        match ExecutorDetails::get(&$executor_details, stringify!($detail_var)) {
+            None => {
+                matches_executor_details!
+                (
+                    =>$($not_exist_detail)* stringify!($detail_var)
+                    ;$executor_details
+                    ;$($remain_detail_var)*
+                )
+            }
+            Some(_x) => {
+                matches_executor_details!
+                (
+                    =>$($not_exist_detail)*
+                    ;$executor_details
+                    ;$($remain_detail_var)*
+                )
+            }
+        }
+    };
+
+    (
+        =>$($not_exist_detail:expr)*
+        ;$executor_details:expr
+        ;$detail_var:ident
+        $($remain_detail_var:ident)*
+    ) => {
+        match ExecutorDetails::get(&$executor_details, stringify!($detail_var)) {
+            None => {
+                matches_executor_details!
+                (
+                    =>$($not_exist_detail)* stringify!($detail_var)
+                    ;$executor_details
+                    ;$($remain_detail_var)*
+                )
+            }
+            Some(x) => {
+                $detail_var = x.to_owned().into();
+                matches_executor_details!
+                (
+                    =>$($not_exist_detail)*
+                    ;$executor_details
+                    ;$($remain_detail_var)*
+                )
+            }
+        }
+    };
+
+    (
+        =>
+        ;$_:expr
+        ;
+    ) => ((););
+
+    (
+        =>$($not_exist_detail:expr)+
+        ;$_:expr
+        ;
+    ) => {
+        return Err(crate::resource::Error::NotEnoughExecutorDetails(vec!(
+            $($not_exist_detail),*
+        )));
+    };
+
 }
 
 /// A extension of Executor for command execution
 pub trait CommandExecutor: Executor {}
+
+/// Kind of Executor for execution by SSH Connection
+pub struct SSHExecutor {
+    id: ExecutorID,
+    user: SSHUser,
+    host: SSHHost,
+}
 
 /// Command is a unit of Execution
 pub struct Command {
@@ -82,6 +173,8 @@ pub enum Error {
     FailedNewExecutorID,
     /// Failed to generate new CommandID
     FailedNewCommandID,
+    /// Not Enough Executor Details
+    NotEnoughExecutorDetails(Vec<&'static str>),
 }
 
 mod command_id;
@@ -90,8 +183,10 @@ mod command_strings;
 mod command_strings_raw;
 mod executor_details;
 mod executor_id;
-mod executor_kind;
 mod executor_repository;
+mod ssh_executor;
+mod ssh_host;
+mod ssh_user;
 
 pub(self) use self::command_id::*;
 pub(self) use self::command_repository::*;
@@ -99,5 +194,6 @@ pub(self) use self::command_strings::*;
 pub(self) use self::command_strings_raw::*;
 pub(self) use self::executor_details::*;
 pub(self) use self::executor_id::*;
-pub(self) use self::executor_kind::*;
 pub(self) use self::executor_repository::*;
+pub(self) use self::ssh_host::*;
+pub(self) use self::ssh_user::*;
