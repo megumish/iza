@@ -77,7 +77,7 @@ pub trait ResourceApp:
     }
 }
 
-/// Executor execute a command
+/// Executor execute something for deployment
 pub trait Executor {
     /// new Executor
     fn new_executor<E, ED>(executor_details: ED) -> Result<E, Error>
