@@ -37,7 +37,7 @@ pub trait ResourceApp:
         ED: Into<ExecutorDetails>,
     {
         Box::new(
-            future::result(new_executor::<E, _>(executor_details).map(|e| Arc::new(e)))
+            future::result(E::new_executor(executor_details).map(|e| Arc::new(e)))
                 .and_then(move |e| self.executor_repository().push(e)),
         )
     }
@@ -78,21 +78,13 @@ pub trait ResourceApp:
 }
 
 /// Executor execute a command
-pub trait Executor {}
-
-fn new_executor<E, ED>(executor_details: ED) -> Result<E, Error>
-where
-    ED: Into<ExecutorDetails>,
-    E: Executor,
-{
-    unimplemented!()
+pub trait Executor {
+    /// new Executor
+    fn new_executor<E, ED>(executor_details: ED) -> Result<E, Error>
+    where
+        ED: Into<ExecutorDetails>,
+        E: Executor;
 }
-
-// pub struct Executor {
-//     id: ExecutorID,
-//     kind: ExecutorKind,
-//     menu: ExecutorMenu,
-// }
 
 /// Fetcher fetch a file
 pub struct Fetcher {
