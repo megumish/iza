@@ -3,7 +3,13 @@ name = "iza"
 version = "0.1.0"
 authors = ["Keishi Kawada <megumish@exploitouri.st>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "Iza Deploy"
+license = "MIT"
 
 [dependencies]
+futures = "=0.1.28"
+serde = { version = "=1.0.99", features = ["derive"] }
+serde_json = "=1.0.40"
+hex = "=0.3.2"
+blake2 = "=0.8.1"
+uuid = { version = "=0.7.4", features = ["v4"] }

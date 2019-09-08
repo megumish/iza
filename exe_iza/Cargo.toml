@@ -3,6 +3,8 @@ name = "exe_iza"
 version = "0.1.0"
 authors = ["Keishi Kawada <megumish@exploitouri.st>"]
 edition = "2018"
+description = "Deployment toolset"
+license = "MIT"
 
 [[bin]]
 name = "iza"
@@ -11,4 +13,4 @@ path = "src/main.rs"
 [dependencies]
 clap = "=2.33"
 futures = "=0.1.28"
-kotonoha = { path = "../kotonoha" }
+kotonoha = "=0.2.0"
