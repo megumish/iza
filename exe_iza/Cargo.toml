@@ -13,4 +13,4 @@ path = "src/main.rs"
 [dependencies]
 clap = "=2.33"
 futures = "=0.1.28"
-kotonoha = { path = "../kotonoha" }
+kotonoha = "=0.2.0"
