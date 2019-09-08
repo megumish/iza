@@ -3,6 +3,8 @@ name = "kotonoha"
 version = "0.2.0"
 authors = ["Keishi Kawada <megumish@exploitouri.st>"]
 edition = "2018"
+description = "userfrendly logging tool"
+license = "MIT"
 
 [dependencies]
 futures = "=0.1.28"
