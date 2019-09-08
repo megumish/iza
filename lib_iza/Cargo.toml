@@ -3,6 +3,8 @@ name = "iza"
 version = "0.1.0"
 authors = ["Keishi Kawada <megumish@exploitouri.st>"]
 edition = "2018"
+description = "Iza Deploy"
+license = "MIT"
 
 [dependencies]
 futures = "=0.1.28"
